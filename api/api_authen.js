@@ -8,7 +8,7 @@ const Op = Sequelize.Op;
 
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
-  //test 555 500
+  //test 555 500 600
   let result = await user.findOne({ where: { username: username } });
   if (result != null) {
     if (
