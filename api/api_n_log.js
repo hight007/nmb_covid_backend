@@ -11,11 +11,11 @@ const constant = require("./../constant/constant");
 router.post("/regist", async (req, res) => {
   try {
     let insert_result = await log_table.create(req.body); //await คือรอให้ส่ง ข้อมูลก่อนจึงตอบ
-    res.json({ result: insert_result, api_result: constant.result_ok });
+    res.json({ result: insert_result, api_result: constant.kResultOk });
     // console.log('====================');
     // console.log(insert_result);
   } catch (error) {
-    res.json({ result: error, api_result: constant.result_nok });
+    res.json({ result: error, api_result: constant.kResultNok });
   }
 });
 
@@ -85,10 +85,10 @@ router.get(
         condition_cd +
         `order by [timestamp] desc`
       );
-      res.json({ result: result[0], api_result: constant.result_ok });
+      res.json({ result: result[0], api_result: constant.kResultOk });
     } catch (error) {
       console.log(error);
-      res.json({ error, api_result: constant.result_nok });
+      res.json({ error, api_result: constant.kResultNok });
     }
   }
 );

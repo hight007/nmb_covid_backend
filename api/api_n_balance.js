@@ -11,9 +11,9 @@ const constant = require("./../constant/constant");
 router.post("/regist", async (req, res) => {
   try {
     let insert_result = await balance_table.create(req.body); //await คือรอให้ส่ง ข้อมูลก่อนจึงตอบ
-    res.json({ result: insert_result, api_result: constant.result_ok });
+    res.json({ result: insert_result, api_result: constant.kResultOk });
   } catch (error) {
-    res.json({ result: error, api_result: constant.result_nok });
+    res.json({ result: error, api_result: constant.kResultNok });
   }
 });
 
@@ -23,17 +23,17 @@ router.get("/check/:emp_no", async (req, res) => {
     let result = await balance_table.sequelize.query(
       `SELECT [id],[timestamp],[mfgdate],[time],[update_by],[emp_no],[emp_name]
       ,[emp_division],[emp_factory],[emp_height],[emp_weight],[emp_tel]
-      ,[emp_process],[other_tel],[place_no],[place_name],[check_in_date]
+      ,[emp_process],[other_tel],[room_no],[place_name],[check_in_date]
       ,[symptom],[congenital_disease]
       ,[createdAt],[updatedAt]
   FROM [CovidCC].[dbo].[cq_balances]
     where [emp_no] = '${emp_no}'`
     );
     // console.log(result);
-    res.json({ result: result[0], api_result: constant.result_ok });
+    res.json({ result: result[0], api_result: constant.kResultOk });
   } catch (error) {
     console.log(error);
-    res.json({ error, api_result: constant.result_nok });
+    res.json({ error, api_result: constant.kResultNok });
   }
 });
 
@@ -42,26 +42,28 @@ router.put("/update", async (req, res) => {
     let result = await balance_table.update(req.body, {
       where: { emp_no: req.body.emp_no },
     });
-    res.json({ result, api_result: constant.result_ok });
+    res.json({ result, api_result: constant.kResultOk });
   } catch (error) {
     console.log("====");
     console.log(error);
-    res.json({ error, api_result: constant.result_nok });
+    res.json({ error, api_result: constant.kResultNok });
   }
 });
+
 //delete
 router.patch("/delete", async (req, res) => {
   try {
     let result = await balance_table.destroy({
       where: { emp_no: req.body.emp_no },
     });
-    res.json({ result, api_result: constant.result_ok });
+    res.json({ result, api_result: constant.kResultOk });
     //console.log(result);
   } catch (error) {
-    res.json({ error, api_result: constant.result_nok });
+    res.json({ error, api_result: constant.kResultNok });
     //console.log(error);
   }
 });
+
 router.get("/report/:plant/:division/:place/:symptom/:cd", async (req, res) => {
   try {
     const { plant, division, place, symptom, cd } = req.params;
@@ -118,10 +120,11 @@ router.get("/report/:plant/:division/:place/:symptom/:cd", async (req, res) => {
       `order by [timestamp] desc`
     );
     // console.log(result);
-    res.json({ result: result[0], api_result: constant.result_ok });
+    res.json({ result: result[0], api_result: constant.kResultOk });
   } catch (error) {
     console.log(error);
-    res.json({ error, api_result: constant.result_nok });
+    res.json({ error, api_result: constant.kResultNok });
   }
 });
+
 module.exports = router;

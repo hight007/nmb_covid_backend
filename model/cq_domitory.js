@@ -11,23 +11,27 @@ const dom_table = database.define(
   {
     // column list >>>>>>>
     id: {
-        type: Sequelize.INTEGER,
-        autoIncrement: true,
-        allowNull: false,  primaryKey: true,
-      },
+      type: Sequelize.INTEGER,
+      autoIncrement: true,
+      allowNull: false,
+    },
     zone: {
       type: Sequelize.STRING,
+      primaryKey: true,
     },
     domitory: {
       type: Sequelize.STRING,
+      primaryKey: true,
     },
     room: {
       type: Sequelize.STRING,
+      primaryKey: true,
     },
     bed: {
       type: Sequelize.STRING,
+      primaryKey: true,
     },
-   
+
   },
   {
     //option

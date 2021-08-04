@@ -14,9 +14,10 @@ router.post("/upload", async (req, res) => {
   try {
 
     let insert_result = await dom_table.create(req.body); //await คือรอให้ส่ง ข้อมูลก่อนจึงตอบ
-    res.json({ result: insert_result, api_result: constant.result_ok });
+    res.json({ result: insert_result, api_result: constant.kResultOk });
   } catch (error) {
-    res.json({ result: error, api_result: constant.result_nok });
+    console.log(error);
+    res.json({ result: error, api_result: constant.kResultNok });
   }
 
 });
