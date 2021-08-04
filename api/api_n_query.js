@@ -28,7 +28,7 @@ router.get("/find_emp/:emp_no", async (req, res) => {
   on [userMaster].[dbo].[plant_masters].[PlantCode] = [divison_masters].[PlantCode]
   where [employee_number] = '${emp_no}'`
     );
-    
+
     res.json({ result: result[0] });
   } catch (error) {
     console.log(error);
@@ -91,7 +91,7 @@ router.get("/find_place_in_log", async (req, res) => {
   }
 
 });
-
+ 
 router.get("/find_div_in_balance", async (req, res) => {
   try {
     let result = await user_table.sequelize.query(

@@ -118,9 +118,8 @@ router.get("/report/:plant/:division/:place/:symptom/:cd", async (req, res) => {
       condition_cd +
       `order by [timestamp] desc`
     );
-    res.json({ result: result[0] });
     // console.log(result);
-    res.json({ result, api_result: constant.result_ok });
+    res.json({ result: result[0], api_result: constant.result_ok });
   } catch (error) {
     console.log(error);
     res.json({ error, api_result: constant.result_nok });
