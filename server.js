@@ -29,7 +29,8 @@ app.use("/api/v1/balance", require("./api/api_n_balance"));
 app.use("/api/v1/log", require("./api/api_n_log"));
 app.use("/api/v1/query", require("./api/api_n_query"));
 app.use("/api/v1/dom", require("./api/api_n_domitory"));
- 
+app.use("/api/v1/sinopharm", require("./api/api_sinopharm"));
+
 app.listen(2009, () => {
   console.log("Backend is running...");
 });
