@@ -29,9 +29,8 @@ router.get("/check/:emp_no", async (req, res) => {
   FROM [CovidCC].[dbo].[cq_balances]
     where [emp_no] = '${emp_no}'`
     );
-    res.json({ result: result[0] });
     // console.log(result);
-    res.json({ result, api_result: constant.result_ok });
+    res.json({ result: result[0], api_result: constant.result_ok });
   } catch (error) {
     console.log(error);
     res.json({ error, api_result: constant.result_nok });
