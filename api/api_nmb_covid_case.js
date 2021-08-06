@@ -4,6 +4,7 @@ const constant = require("../constant/constant");
 const router = express.Router();
 const fs = require("fs");
 const Sequelize = require("sequelize");
+const { QueryTypes } = require("sequelize");
 const Op = Sequelize.Op;
 const moment = require("moment");
 const { Parser } = require('json2csv');
@@ -401,14 +402,27 @@ router.get('/report', async (req, res) => {
             where: { status: 'fatality' }
         })
 
+        const result = await nmb_covid_case.sequelize.query(`
+        SELECT
+[plantName],
+count([employee_number]) as [totalCases],
+count(CASE WHEN CONVERT(date, [report_date]) = CONVERT(date, getdate()) THEN 1 END) as [todayCases],
+count(CASE WHEN CONVERT(date, [report_date]) = CONVERT(date, DATEADD(DAY, -1, getdate())) THEN 1 END) as [yesterdayCases],
+count(CASE WHEN [stayHome_start_date] is null and [returnToWork_date]  is null and [status] != 'fatality' THEN 1 END) as [hospital],
+count(CASE WHEN [stayHome_start_date] is not null and [returnToWork_date]  is null and [status] != 'fatality' THEN 1 END) as [home],
+count(CASE WHEN [returnToWork_date]  is not null and [status] != 'fatality' THEN 1 END) as [returnToWork],
+count(CASE WHEN [status] = 'fatality' THEN 1 END) as [fatality]
+  FROM [CovidCC].[dbo].[nmb_covid_cases]
+group by [plantName]
+        `, {
+            type: QueryTypes.SELECT,
+        })
+
         res.json({
             api_result: constant.kResultOk,
-            CumulativeCases,
-            hospital,
-            stayHome,
-            returnToWork,
-            fatality,
+            result,
         })
+
     } catch (error) {
         console.log(error);
         res.json({ error, api_result: constant.kResultNok })
