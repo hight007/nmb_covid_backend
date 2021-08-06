@@ -368,11 +368,12 @@ router.get('/report', async (req, res) => {
     try {
         const CumulativeCases = await nmb_covid_case.count({
         });
-        const hostpital = await nmb_covid_case.count({
+        const hospital = await nmb_covid_case.count({
             where: {
                 [Op.and]: [
                     { stayHome_start_date: { [Op.eq]: null } },
                     { returnToWork_date: { [Op.eq]: null } },
+                    { status: 'alive' },
                 ]
 
             }
@@ -382,6 +383,7 @@ router.get('/report', async (req, res) => {
                 [Op.and]: [
                     { stayHome_start_date: { [Op.ne]: null } },
                     { returnToWork_date: { [Op.eq]: null } },
+                    { status: 'alive' },
                 ]
 
             }
@@ -391,16 +393,21 @@ router.get('/report', async (req, res) => {
                 [Op.and]: [
                     { stayHome_start_date: { [Op.ne]: null } },
                     { returnToWork_date: { [Op.ne]: null } },
+                    { status: 'alive' },
                 ]
             }
         });
+        const fatality = await nmb_covid_case.count({
+            where: { status: 'fatality' }
+        })
 
         res.json({
             api_result: constant.kResultOk,
             CumulativeCases,
-            hostpital,
+            hospital,
             stayHome,
-            returnToWork
+            returnToWork,
+            fatality,
         })
     } catch (error) {
         console.log(error);
@@ -548,5 +555,5 @@ router.delete('/case', async (req, res) => {
         res.json({ error, api_result: constant.kResultNok })
     }
 })
- 
+
 module.exports = router;
