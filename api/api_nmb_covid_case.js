@@ -367,41 +367,6 @@ router.get('/case/:case_id', async (req, res) => {
 
 router.get('/report', async (req, res) => {
     try {
-        const CumulativeCases = await nmb_covid_case.count({
-        });
-        const hospital = await nmb_covid_case.count({
-            where: {
-                [Op.and]: [
-                    { stayHome_start_date: { [Op.eq]: null } },
-                    { returnToWork_date: { [Op.eq]: null } },
-                    { status: 'alive' },
-                ]
-
-            }
-        });
-        const stayHome = await nmb_covid_case.count({
-            where: {
-                [Op.and]: [
-                    { stayHome_start_date: { [Op.ne]: null } },
-                    { returnToWork_date: { [Op.eq]: null } },
-                    { status: 'alive' },
-                ]
-
-            }
-        });
-        const returnToWork = await nmb_covid_case.count({
-            where: {
-                [Op.and]: [
-                    { stayHome_start_date: { [Op.ne]: null } },
-                    { returnToWork_date: { [Op.ne]: null } },
-                    { status: 'alive' },
-                ]
-            }
-        });
-        const fatality = await nmb_covid_case.count({
-            where: { status: 'fatality' }
-        })
-
         const result = await nmb_covid_case.sequelize.query(`
         SELECT
 [plantName],
