@@ -495,7 +495,10 @@ router.put('/case', async (req, res) => {
 
             if (returnToWork_date !== 'null' && returnToWork_date != null) {
                 data.returnToWork_date = returnToWork_date
+            } else {
+                data.returnToWork_date = null
             }
+            
             if (negative_result_count !== 'null' && negative_result_count != null) {
                 data.negative_result_count = negative_result_count
             }
