@@ -39,8 +39,8 @@ router.post('/case', async (req, res) => {
                 // stayHome_end_date,
                 // returnToWork_date,
                 // PCR_test_result,
-                cause_type,
-                cause_detail,
+                // cause_type,
+                // cause_detail,
                 updateBy,
             } = fields
             if (files.fileData_positive_result == null) {
@@ -70,8 +70,8 @@ router.post('/case', async (req, res) => {
                 treatment_start_date,
                 fileData_positive_result: await fs.readFileSync(fileData_positive_result),
                 fileType_positive_result,
-                cause_type,
-                cause_detail,
+                // cause_type,
+                // cause_detail,
                 updateBy,
             };
 
