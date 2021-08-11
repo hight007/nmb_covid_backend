@@ -481,13 +481,13 @@ router.put('/case', async (req, res) => {
                 data.treatment_end_date = treatment_end_date
             }
             // if (stayHome_start_date !== 'null' && stayHome_start_date != null) {
-            //     data.stayHome_start_date = stayHome_start_date
+            data.stayHome_start_date = stayHome_start_date
             // }
             // if (stayHome_end_date !== 'null' && stayHome_end_date != null) {
-            //     data.stayHome_end_date = stayHome_end_date
+            data.stayHome_end_date = stayHome_end_date
             // }
             // if (returnToWork_date !== 'null' && returnToWork_date != null) {
-            //     data.returnToWork_date = returnToWork_date
+            data.returnToWork_date = returnToWork_date
             // }
             if (negative_result_count !== 'null' && negative_result_count != null) {
                 data.negative_result_count = negative_result_count
