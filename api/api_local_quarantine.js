@@ -171,9 +171,9 @@ router.get('/report', async (req, res) => {
           [Op.gt]: moment().add(-30, 'days')
         }
       },
-      attributes: ['id', 'employee_number', 'temperature', 'oxygen', 'pulse'],
+      attributes: ['id', 'employee_number', 'temperature', 'oxygen', 'pulse', 'updatedAt'],
     })
-    const fields = ['id', 'employee_number', 'temperature', 'oxygen', 'pulse'];
+    const fields = ['id', 'employee_number', 'temperature', 'oxygen', 'pulse', 'updatedAt'];
     const opts = { fields };
 
     const parser = new Parser(opts);
