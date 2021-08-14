@@ -21,7 +21,7 @@ router.post("/rfid", async (req, res) => {
 
 router.get("/rfid", async (req, res) => {
     try {
-        let result = await rfid.findAll();
+        let result = await rfid.count();
         res.json({ result, api_result: constant.kResultOk });
     } catch (error) {
         console.log(error);
