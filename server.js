@@ -23,13 +23,14 @@ app.use("/api/v1/home_image/", require("./api/api_image"));
 app.use("/api/v1/orderMask/", require("./api/api_order_mask"));
 app.use("/api/v1/vaccineSurvey/", require("./api/api_vaccineSurvey"));
 app.use("/api/v1/provinces/", require("./api/api_provinces"));
-app.use("/api/v1/local_quarantine/" , require("./api/api_local_quarantine"))
+app.use("/api/v1/local_quarantine/", require("./api/api_local_quarantine"))
 app.use("/api/v1/nmb_covid_case/", require("./api/api_nmb_covid_case"))
 app.use("/api/v1/balance", require("./api/api_n_balance"));
 app.use("/api/v1/log", require("./api/api_n_log"));
 app.use("/api/v1/query", require("./api/api_n_query"));
 app.use("/api/v1/dom", require("./api/api_n_domitory"));
 app.use("/api/v1/sinopharm", require("./api/api_sinopharm"));
+app.use("/api/v1/rfid", require("./api/api_rfid"));
 
 app.listen(2009, () => {
   console.log("Backend is running...");
