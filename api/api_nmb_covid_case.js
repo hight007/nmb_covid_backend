@@ -371,8 +371,8 @@ router.get('/report', async (req, res) => {
         SELECT
 [plantName],
 count([employee_number]) as [totalCases],
-count(CASE WHEN CONVERT(date, [report_date]) = CONVERT(date, getdate()) THEN 1 END) as [todayCases],
-count(CASE WHEN CONVERT(date, [report_date]) = CONVERT(date, DATEADD(DAY, -1, getdate())) THEN 1 END) as [yesterdayCases],
+count(CASE WHEN CONVERT(date, DATEADD(HOUR, 7, [report_date])) = CONVERT(date, getdate()) THEN 1 END) as [todayCases],
+count(CASE WHEN CONVERT(date, DATEADD(HOUR, 7, [report_date])) = CONVERT(date, DATEADD(DAY, -1, getdate())) THEN 1 END) as [yesterdayCases],
 count(CASE WHEN ([stayHome_start_date] is null or [stayHome_start_date] > CONVERT(date, getdate())) and ([returnToWork_date]  is null or [returnToWork_date] > CONVERT(date, getdate())) and [status] != 'fatality' THEN 1 END) as [hospital],
 count(CASE WHEN ([stayHome_start_date] is not null and [stayHome_start_date] <= CONVERT(date, getdate())) and ([returnToWork_date]  is null or [returnToWork_date] > CONVERT(date, getdate())) and [status] != 'fatality' THEN 1 END) as [home],
 count(CASE WHEN ([returnToWork_date]  is not null and [returnToWork_date] <= CONVERT(date, getdate())) and [status] != 'fatality' THEN 1 END) as [returnToWork],
