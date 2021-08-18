@@ -134,7 +134,7 @@ router.get("/TrackBusSeat/:infectDate&:EmpNo&:previousDay&:riskTimeMin&:riskTime
         ,B.[zone_name] as [Bus_Zone]
         ,C.[bus_company_name] as [Bus_Company]
         ,SUBSTRING([Getdata],8,2) as [Province]
-        ,SUBSTRING([Getdata],4,4) as [Plate]
+        ,SUBSTRING([Getdata],3,5) as [Plate]
         ,SUBSTRING([Getdata],10,3) as [Seat_number]
 		,SUBSTRING([Getdata],10,1) as [Seat_column]
     ,SUBSTRING([Getdata],11,2) as [Seat_row]
@@ -173,7 +173,7 @@ router.get("/TrackBusSeat/:infectDate&:EmpNo&:previousDay&:riskTimeMin&:riskTime
         ,B.[zone_name] as [Bus_Zone]
         ,C.[bus_company_name] as [Bus_Company]
         ,SUBSTRING([Getdata],8,2) as [Province]
-        ,SUBSTRING([Getdata],4,4) as [Plate]
+        ,SUBSTRING([Getdata],3,5) as [Plate]
         ,SUBSTRING([Getdata],10,3) as [Seat_number]
 		,SUBSTRING([Getdata],10,1) as [Seat_column]
     FROM [CovidCC].[dbo].[GetThedatas] A left join [CovidCC].[dbo].[bus_zones] B
@@ -182,7 +182,7 @@ router.get("/TrackBusSeat/:infectDate&:EmpNo&:previousDay&:riskTimeMin&:riskTime
     on SUBSTRING([Getdata],3,1) = C.[bus_company_code]
     where SUBSTRING([Getdata] , 1,1) = 'B'  and
 	([update] between '${moment(item.Update).utc().add(-parseInt(riskTimeMin), 'hours').format('YYYY-MM-DD HH:mm:ss')}' and '${moment(item.Update).utc().add(parseInt(riskTimeMax), 'hours').format('YYYY-MM-DD HH:mm:ss')}')and
-	SUBSTRING([Getdata],4,4) = '${item.Plate}' and
+	SUBSTRING([Getdata],3,5) = '${item.Plate}' and
 	(SUBSTRING([Getdata],10,3) = '${item.Seat_number}' ${contactSeatBusRules(item.Seat_column, item.Seat_row)} ) and
 	[EmpNo] != '${EmpNo}'
 	order by [Update] desc`,
