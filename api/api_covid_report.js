@@ -182,7 +182,7 @@ router.get("/TrackBusSeat/:infectDate&:EmpNo&:previousDay&:riskTimeMin&:riskTime
     on SUBSTRING([Getdata],3,1) = C.[bus_company_code]
     where SUBSTRING([Getdata] , 1,1) = 'B'  and
 	([update] between '${moment(item.Update).utc().add(-parseInt(riskTimeMin), 'hours').format('YYYY-MM-DD HH:mm:ss')}' and '${moment(item.Update).utc().add(parseInt(riskTimeMax), 'hours').format('YYYY-MM-DD HH:mm:ss')}')and
-	SUBSTRING([Getdata],3,5) = '${item.Plate}' and SUBSTRING([Getdata],8,2) = '${item.Province}'
+	SUBSTRING([Getdata],3,5) = '${item.Plate}' and SUBSTRING([Getdata],8,2) = '${item.Province}' and
 	(SUBSTRING([Getdata],10,3) = '${item.Seat_number}' ${contactSeatBusRules(item.Seat_column, item.Seat_row)} ) and
 	[EmpNo] != '${EmpNo}'
 	order by [Update] desc`,
