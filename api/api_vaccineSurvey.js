@@ -91,7 +91,7 @@ router.get('/report', async (req, res) => {
   try {
     console.log('start vaccine survey');
 
-    const response = await vaccineSurvey.sequelize.query(
+    const vaccineStatus = await vaccineSurvey.sequelize.query(
       `WITH ranked_messages AS (
         SELECT m.*, ROW_NUMBER() OVER (PARTITION BY [empNumber] ORDER BY id DESC) AS rn
         FROM [CovidCC].[dbo].[vaccineSurveys]  AS m
@@ -99,7 +99,7 @@ router.get('/report', async (req, res) => {
       )
       SELECT
       count([empNumber]) as [Count],
-	  [vaccineStatus] as 'สถานะการฉีดวัคซีนของพนักงาน'
+	  [vaccineStatus]
 	  FROM ranked_messages
 	  WHERE rn = 1
 	  group by [vaccineStatus]
@@ -108,8 +108,47 @@ router.get('/report', async (req, res) => {
         type: QueryTypes.SELECT,
       }
     );
-    
-    res.json({ response, api_result: constant.kResultOk })
+
+    const noNeedVaccineReason = await vaccineSurvey.sequelize.query(
+      `WITH ranked_messages AS (
+        SELECT m.*, ROW_NUMBER() OVER (PARTITION BY [empNumber] ORDER BY id DESC) AS rn
+        FROM [CovidCC].[dbo].[vaccineSurveys]  AS m
+
+      )
+      SELECT
+      count([empNumber]) as [Count],
+	  [noNeedVaccineReason]
+	  FROM ranked_messages
+	  WHERE rn = 1 and [isNeedVaccine] = 0
+	  group by [noNeedVaccineReason]
+	  `,
+      {
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    const vaccineType = await vaccineSurvey.sequelize.query(
+      `WITH ranked_messages AS (
+        SELECT m.*, ROW_NUMBER() OVER (PARTITION BY [empNumber] ORDER BY id DESC) AS rn
+        FROM [CovidCC].[dbo].[vaccineSurveys]  AS m
+
+      ) , vaccineTable as (
+	  SELECT
+      [vaccine1] + ' + ' + [vaccine2] as [VaccineType]
+	  FROM ranked_messages
+	  WHERE rn = 1 and [bookVaccineStatus] is null and [vaccine1] is not null
+	  )
+      select [VaccineType] , count(*) as [count]
+	   from vaccineTable
+	   group by [VaccineType]
+	   order by count(*) desc
+	  `,
+      {
+        type: QueryTypes.SELECT,
+      }
+    );
+
+    res.json({ vaccineStatus, noNeedVaccineReason, vaccineType, api_result: constant.kResultOk })
   } catch (error) {
     console.log(error);
     res.json({ error, api_result: constant.kResultNok });
