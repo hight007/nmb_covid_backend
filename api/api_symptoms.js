@@ -56,14 +56,21 @@ router.post("/symptoms", async (req, res) => {
 router.get("/symptoms", async (req, res) => {
     try {
         const result = await symptoms.sequelize.query(
-            `SELECT [empNumber]
+            `SELECT [empNumber],
+	  b.[employee_type] as 'สถานะพนักงาน',
+	  b.[employee_name] as 'ชื่อ - นามสกุล' ,
+	  d.[PlantName] as 'โรงงาน',
+	  c.[divisionName] as 'ฝ่าย'
       ,[inputDate]
       ,[symptoms]
       ,[livingDetail]
       ,[personLivingWith]
-      ,[createdAt]
-      ,[updatedAt]
-  FROM [CovidCC].[dbo].[symptoms]
+      ,a.[createdAt]
+      ,a.[updatedAt]
+  FROM [CovidCC].[dbo].[symptoms] a
+  join [userMaster].[dbo].[all_employee_lists] b on a.[empNumber] = b.[employee_number] COLLATE Thai_CI_AS
+  join [userMaster].[dbo].[divison_masters] c on b.[divisionCode] = c.[divisionCode] COLLATE Thai_CI_AS
+  join [userMaster].[dbo].[plant_masters] d on c.[PlantCode] = d.[PlantCode] COLLATE Thai_CI_AS
   where [symptoms] != '' or [personLivingWith] != ''`,
             {
                 type: QueryTypes.SELECT,
