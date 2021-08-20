@@ -60,8 +60,10 @@ router.get("/find_user/:username", async (req, res) => {
     const { username } = req.params;
     let result = await user.findAll({
       where: {
-        username: { [Op.like]: "%" + username + "%" },
-        empNumber: { [Op.like]: "%" + username + "%" },
+        [Op.or]: [
+          { username: { [Op.like]: "%" + username + "%" } },
+          { empNumber: { [Op.like]: "%" + username + "%" } },
+        ]
       },
       attributes: [
         "username",

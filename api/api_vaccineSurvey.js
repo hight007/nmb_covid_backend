@@ -29,7 +29,7 @@ router.post("/survey", async (req, res) => {
   }
 });
 
-router.get('/survey' , async (req, res) => {
+router.get('/survey', async (req, res) => {
   try {
     console.log('start vaccine survey');
     const response = await vaccineSurvey.sequelize.query(
@@ -77,17 +77,46 @@ router.get('/survey' , async (req, res) => {
     );
     var excelFilePath = `files/Doc/vaccine_survey_${moment().format('DDMMYYYY')}.xlsx`;
 
-      var xls = await json2xls(response);
-      await fs.writeFileSync(excelFilePath, xls, "binary");
+    var xls = await json2xls(response);
+    await fs.writeFileSync(excelFilePath, xls, "binary");
 
-      res.download(excelFilePath);
+    res.download(excelFilePath);
   } catch (error) {
     console.log(error);
     res.json({ error, api_result: constant.kResultNok });
   }
 })
 
-router.get('/missing' , async (req, res) => {
+router.get('/report', async (req, res) => {
+  try {
+    console.log('start vaccine survey');
+
+    const response = await vaccineSurvey.sequelize.query(
+      `WITH ranked_messages AS (
+        SELECT m.*, ROW_NUMBER() OVER (PARTITION BY [empNumber] ORDER BY id DESC) AS rn
+        FROM [CovidCC].[dbo].[vaccineSurveys]  AS m
+
+      )
+      SELECT
+      count([empNumber]) as [Count],
+	  [vaccineStatus] as 'สถานะการฉีดวัคซีนของพนักงาน'
+	  FROM ranked_messages
+	  WHERE rn = 1
+	  group by [vaccineStatus]
+	  `,
+      {
+        type: QueryTypes.SELECT,
+      }
+    );
+    
+    res.json({ response, api_result: constant.kResultOk })
+  } catch (error) {
+    console.log(error);
+    res.json({ error, api_result: constant.kResultNok });
+  }
+})
+
+router.get('/missing', async (req, res) => {
   try {
     const response = await vaccineSurvey.sequelize.query(
       `SELECT a.* , [divisionName] , d.[PlantName]
@@ -103,10 +132,10 @@ router.get('/missing' , async (req, res) => {
     );
     var excelFilePath = `files/Doc/missing_vaccine_survey_${moment().format('DDMMYYYY')}.xlsx`;
 
-      var xls = await json2xls(response);
-      await fs.writeFileSync(excelFilePath, xls, "binary");
+    var xls = await json2xls(response);
+    await fs.writeFileSync(excelFilePath, xls, "binary");
 
-      res.download(excelFilePath);
+    res.download(excelFilePath);
   } catch (error) {
     console.log(error);
     res.json({ error, api_result: constant.kResultNok });
