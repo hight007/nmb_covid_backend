@@ -31,6 +31,7 @@ app.use("/api/v1/query", require("./api/api_n_query"));
 app.use("/api/v1/dom", require("./api/api_n_domitory"));
 app.use("/api/v1/sinopharm", require("./api/api_sinopharm"));
 app.use("/api/v1/rfid", require("./api/api_rfid"));
+app.use("/api/v1/symptoms", require("./api/api_symptoms"));
 
 app.listen(2009, () => {
   console.log("Backend is running...");
