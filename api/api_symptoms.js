@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const constants = require("../constant/constant");
 const json2xls = require("json2xls");
+const { QueryTypes } = require("sequelize");
 const fs = require("fs");
 const { Op } = require("sequelize");
 const symptoms = require('../model/symptoms');
@@ -51,5 +52,37 @@ router.post("/symptoms", async (req, res) => {
         }
     }
 });
+
+router.get("/symptoms", async (req, res) => {
+    try {
+        const result = await symptoms.sequelize.query(
+            `SELECT [empNumber]
+      ,[inputDate]
+      ,[symptoms]
+      ,[livingDetail]
+      ,[personLivingWith]
+      ,[createdAt]
+      ,[updatedAt]
+  FROM [CovidCC].[dbo].[symptoms]
+  where [symptoms] != '' or [personLivingWith] != ''`,
+            {
+                type: QueryTypes.SELECT,
+            }
+        );
+
+        var excelFilePath = `files/Doc/Temperature_excel/_symptoms_.xlsx`;
+
+        var xls = await json2xls(result);
+        await fs.writeFileSync(excelFilePath, xls, "binary");
+
+        res.download(excelFilePath);
+    } catch (error) {
+        console.log("error 2");
+        res.json({
+            error: error2,
+            message: constants.kResultNok,
+        });
+    }
+})
 
 module.exports = router;
