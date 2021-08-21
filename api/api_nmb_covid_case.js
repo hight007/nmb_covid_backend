@@ -135,7 +135,8 @@ router.get('/cases', async (req, res) => {
 router.get('/listDivisionName', async (req, res) => {
     try {
         let result = await nmb_covid_case.findAll({
-            attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('divisionName')), 'divisionName']]
+            attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('divisionName')), 'divisionName']],
+            order: [["divisionName"]],
         })
         res.json({
             api_result: constant.kResultOk,
@@ -151,7 +152,8 @@ router.get('/listDivisionName', async (req, res) => {
 router.get('/listPlantName', async (req, res) => {
     try {
         let result = await nmb_covid_case.findAll({
-            attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('plantName')), 'plantName']]
+            attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('plantName')), 'plantName']],
+            order: [["plantName"]],
         })
         res.json({
             api_result: constant.kResultOk,
@@ -498,7 +500,7 @@ router.put('/case', async (req, res) => {
             } else {
                 data.returnToWork_date = null
             }
-            
+
             if (negative_result_count !== 'null' && negative_result_count != null) {
                 data.negative_result_count = negative_result_count
             }
