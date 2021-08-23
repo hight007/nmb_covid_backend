@@ -53,7 +53,7 @@ router.post("/symptoms", async (req, res) => {
     }
 });
 
-router.get("/symptoms", async (req, res) => {
+router.get("/symptomsAll", async (req, res) => {
     try {
         const result = await symptoms.sequelize.query(
             `SELECT [empNumber],
@@ -87,6 +87,93 @@ router.get("/symptoms", async (req, res) => {
         console.log("error 2");
         res.json({
             error: error2,
+            message: constants.kResultNok,
+        });
+    }
+})
+
+router.get("/symptoms/:plant&:startDate&:toDate", async (req, res) => {
+    try {
+        const { plant, startDate, toDate } = req.params;
+        var plantFilter = ''
+        if (plant !== "All" && plant !== null) {
+            plantFilter = ` and d.[PlantName] = '${plant}'`;
+        }
+
+        const result = await symptoms.sequelize.query(
+            `SELECT [empNumber],
+	  b.[employee_type] as 'สถานะพนักงาน',
+	  b.[employee_name] as 'ชื่อ - นามสกุล' ,
+	  d.[PlantName] as 'โรงงาน',
+	  c.[divisionName] as 'ฝ่าย'
+      ,[inputDate]
+      ,[symptoms]
+      ,[livingDetail]
+      ,[personLivingWith]
+      ,a.[createdAt]
+      ,a.[updatedAt]
+  FROM [CovidCC].[dbo].[symptoms] a
+  join [userMaster].[dbo].[all_employee_lists] b on a.[empNumber] = b.[employee_number] COLLATE Thai_CI_AS
+  join [userMaster].[dbo].[divison_masters] c on b.[divisionCode] = c.[divisionCode] COLLATE Thai_CI_AS
+  join [userMaster].[dbo].[plant_masters] d on c.[PlantCode] = d.[PlantCode] COLLATE Thai_CI_AS
+  where ([symptoms] != '' or [personLivingWith] != '') and 
+  convert(date ,[inputDate]) between convert(date,'${startDate}') and convert(date,'${toDate}') ${plantFilter}`,
+            {
+                type: QueryTypes.SELECT,
+            }
+        );
+
+        res.json({ result, api_result: constants.kResultOk })
+    } catch (error) {
+        console.log(error);
+        res.json({
+            error: error,
+            message: constants.kResultNok,
+        });
+    }
+})
+
+router.get("/symptomsCSV/:plant&:startDate&:toDate", async (req, res) => {
+    try {
+        const { plant, startDate, toDate } = req.params;
+        var plantFilter = ''
+        if (plant !== "All" && plant !== null) {
+            plantFilter = ` and d.[PlantName] = '${plant}'`;
+        }
+
+        const result = await symptoms.sequelize.query(
+            `SELECT [empNumber],
+	  b.[employee_type] as 'สถานะพนักงาน',
+	  b.[employee_name] as 'ชื่อ - นามสกุล' ,
+	  d.[PlantName] as 'โรงงาน',
+	  c.[divisionName] as 'ฝ่าย'
+      ,[inputDate]
+      ,[symptoms]
+      ,[livingDetail]
+      ,[personLivingWith]
+      ,a.[createdAt]
+      ,a.[updatedAt]
+  FROM [CovidCC].[dbo].[symptoms] a
+  join [userMaster].[dbo].[all_employee_lists] b on a.[empNumber] = b.[employee_number] COLLATE Thai_CI_AS
+  join [userMaster].[dbo].[divison_masters] c on b.[divisionCode] = c.[divisionCode] COLLATE Thai_CI_AS
+  join [userMaster].[dbo].[plant_masters] d on c.[PlantCode] = d.[PlantCode] COLLATE Thai_CI_AS
+  where ([symptoms] != '' or [personLivingWith] != '') and 
+  convert(date ,[inputDate]) between convert(date,'${startDate}') and convert(date,'${toDate}') ${plantFilter}`,
+            {
+                type: QueryTypes.SELECT,
+            }
+        );
+
+        var excelFilePath = `files/Doc/Temperature_excel/_symptoms_${startDate}_${toDate}_${plant}.xlsx`;
+
+        var xls = await json2xls(result);
+        await fs.writeFileSync(excelFilePath, xls, "binary");
+
+        res.download(excelFilePath);
+    } catch (error) {
+        console.log(error);
+        res.json({
+            error: error,
             message: constants.kResultNok,
         });
     }
