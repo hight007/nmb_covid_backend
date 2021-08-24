@@ -43,9 +43,7 @@ router.post('/case', async (req, res) => {
                 // cause_detail,
                 updateBy,
             } = fields
-            if (files.fileData_positive_result == null) {
-                return res.json({ error: employee_number + ' ไม่ได้อัพโหลดผลการตรวจโควิด', api_result: constant.kResultNok })
-            }
+
             const fileData_positive_result = files.fileData_positive_result.path
             const fileType_positive_result = files.fileData_positive_result.type
 
@@ -68,13 +66,17 @@ router.post('/case', async (req, res) => {
                 hospital_or_lab,
                 detail,
                 treatment_start_date,
-                fileData_positive_result: await fs.readFileSync(fileData_positive_result),
-                fileType_positive_result,
+
                 // cause_type,
                 // cause_detail,
                 updateBy,
             };
 
+            if (files.fileData_positive_result == null) {
+                data.fileData_positive_result = await fs.readFileSync(fileData_positive_result)
+                data.fileType_positive_result = fileType_positive_result
+                // return res.json({ error: employee_number + ' ไม่ได้อัพโหลดผลการตรวจโควิด', api_result: constant.kResultNok })
+            }
             if (casesThis_employee_number.length > 0 && casesThis_employee_number.returnToWork_date == null) {
                 //check this employee_number have already return to work on last case
                 return res.json({ error: employee_number + ' ยังไม่ได้กลับมาทำงานหรือมีผลเป็นลบ', api_result: constant.kResultNok })
@@ -184,8 +186,9 @@ router.get('/search/:keywords&:employee_number&:start_report_date&:end_report_da
             ]
         }
         if (keywords != 'all') {
-            where[Op.and].push({
+            where = {
                 [Op.or]: [
+                    { employee_number: { [Op.like]: `%${keywords}%` } },
                     { employee_name: { [Op.like]: `%${keywords}%` } },
                     { jobDescription: { [Op.like]: `%${keywords}%` } },
                     { telephone_number: { [Op.like]: `%${keywords}%` } },
@@ -193,17 +196,23 @@ router.get('/search/:keywords&:employee_number&:start_report_date&:end_report_da
                     { status: { [Op.like]: `%${keywords}%` } },
                     { detail: { [Op.like]: `%${keywords}%` } },
                 ]
-            })
+            }
         }
-        if (employee_number != 'all') {
-            where[Op.and].push({ employee_number })
-        }
+
         if (divisionName != 'all') {
             where[Op.and].push({ divisionName })
         }
         if (plantName != 'all') {
             where[Op.and].push({ plantName })
         }
+        if (employee_number != 'all') {
+            // where[Op.and].push({ employee_number })
+            where = {
+                employee_number
+            }
+        }
+        console.log(employee_number);
+        console.log(where);
 
         let result = await nmb_covid_case.findAll({
             attributes: [
