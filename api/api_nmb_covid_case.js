@@ -39,8 +39,8 @@ router.post('/case', async (req, res) => {
                 // stayHome_end_date,
                 // returnToWork_date,
                 // PCR_test_result,
-                // cause_type,
-                // cause_detail,
+                cause_type,
+                cause_detail,
                 updateBy,
             } = fields
 
@@ -67,8 +67,8 @@ router.post('/case', async (req, res) => {
                 detail,
                 treatment_start_date,
 
-                // cause_type,
-                // cause_detail,
+                cause_type,
+                cause_detail,
                 updateBy,
             };
 
@@ -394,8 +394,80 @@ group by [plantName]
             type: QueryTypes.SELECT,
         })
 
+        const timeLineCase = await nmb_covid_case.sequelize.query(`DECLARE @cols AS NVARCHAR(MAX)
+,@colsIsnull AS NVARCHAR(MAX)
+,@colsSum AS NVARCHAR(MAX)
+,@query  AS NVARCHAR(MAX);
+
+SET @cols = STUFF((SELECT ',' + QUOTENAME([plantName])
+			FROM [CovidCC].[dbo].[nmb_covid_cases]
+			group by [plantName]
+            FOR XML PATH(''), TYPE
+            ).value('.', 'NVARCHAR(MAX)')
+        ,1,1,'')
+
+SET @colsIsnull = STUFF((SELECT ', isnull(' + QUOTENAME([plantName])+', 0) as '+QUOTENAME([plantName])
+			FROM [CovidCC].[dbo].[nmb_covid_cases]
+			group by [plantName]
+            FOR XML PATH(''), TYPE
+            ).value('.', 'NVARCHAR(MAX)')
+        ,1,1,'')
+
+SET @colsSum = STUFF((SELECT '+' + QUOTENAME([plantName])
+			FROM [CovidCC].[dbo].[nmb_covid_cases]
+			group by [plantName]
+            FOR XML PATH(''), TYPE
+            ).value('.', 'NVARCHAR(MAX)')
+        ,1,1,'')
+
+SET @query = '
+with a as (
+SELECT CONVERT(date, DATEADD(HOUR, 7, DATEADD(HOUR, 7, [report_date]))) as [report_date],
+       [plantName],
+       COUNT(*) as [Case]
+  FROM [CovidCC].[dbo].[nmb_covid_cases]
+  group by CONVERT(date, DATEADD(HOUR, 7, DATEADD(HOUR, 7, [report_date]))) , [plantName]
+  ), b as (
+  select [report_date] , ' + @colsIsnull + ' from a
+  PIVOT (SUM([Case]) FOR [plantName] IN (' + @cols + ')) AS P
+  )
+ select ' + @colsSum + ' as [Total] , *
+  from b
+  order by [report_date]
+'
+execute(@query)
+        `, {
+            type: QueryTypes.SELECT,
+        })
+
+        const listTimeLineCase = objectToArray(timeLineCase)
+
+        var chartSeries = []
+        for (let i = 0; i < listTimeLineCase.keyList.length; i++) {
+            const item = listTimeLineCase.result[listTimeLineCase.keyList[i]];
+            if (listTimeLineCase.keyList[i] != 'report_date') {
+                if (listTimeLineCase.keyList[i] === 'Total') {
+                    // chartSeries.push({
+                    //     name: listTimeLineCase.keyList[i],
+                    //     data: item,
+                    //     type: 'line',
+                    // })
+                } else {
+                    chartSeries.push({
+                        name: listTimeLineCase.keyList[i],
+                        data: item,
+                        type: 'column',
+                    })
+                }
+
+            }
+        }
+        chartCategories = listTimeLineCase.result.report_date
+
         res.json({
+            chart_data: { chartSeries, chartCategories },
             api_result: constant.kResultOk,
+            timeLineCase,
             result,
         })
 
@@ -555,5 +627,25 @@ router.delete('/case', async (req, res) => {
         res.json({ error, api_result: constant.kResultNok })
     }
 })
+
+
+const objectToArray = (array) => {
+    var keyList = Object.keys(array[0])
+    var result = {}
+    for (let i = 0; i < array.length; i++) {
+        const item = array[i];
+        for (let j = 0; j < keyList.length; j++) {
+            const key = keyList[j];
+            var temp = []
+            if (result[key] != null) {
+                temp = result[key]
+            }
+            temp.push(item[key])
+            result[key] = temp
+        }
+
+    }
+    return { result, keyList }
+}
 
 module.exports = router;
