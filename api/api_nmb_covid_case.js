@@ -418,7 +418,7 @@ SET @colsSum = STUFF((SELECT '+' + QUOTENAME([plantName])
 			group by [plantName]
             FOR XML PATH(''), TYPE
             ).value('.', 'NVARCHAR(MAX)')
-        ,1,1,'')
+        ,1,1,'') 
 
 SET @query = '
 with a as (
