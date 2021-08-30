@@ -63,7 +63,10 @@ router.get('/survey', async (req, res) => {
 	  iif(a.[isAggreeInformation] = 0 ,'not agree','agree') as 'ข้าพเจ้ายินยอมให้ข้อมูลกับบริษัทฯ',
 	  CONVERT(VARCHAR, a.[updatedAt] AT TIME ZONE 'UTC' AT TIME ZONE 'SE Asia Standard Time' , 120) as 'เวลาที่กรอกข้อมูล',
 	  a.vaccine1 as 'วัคซีนเข็มที่หนึ่ง',
-	  a.vaccine2 as 'วัคซีนเข็มที่สอง'
+	  a.vaccine2 as 'วัคซีนเข็มที่สอง',
+	  iif(a.[isNeedVaccine] = 1 and [bookVaccineStatus] is null and a.[noBookVaccineReason] is null,
+		  iif(a.[firstVaccineDate] < getdate() ,
+			  iif(a.[seccondVaccineDate] < getdate() , 2 , 1), 0) ,0) as [vaccineDose]
 	  FROM ranked_messages a
 	  join [userMaster].[dbo].[all_employee_lists] b on a.[empNumber] = b.[employee_number] COLLATE Thai_CI_AS
 	  join [userMaster].[dbo].[divison_masters] c on b.[divisionCode] = c.[divisionCode] COLLATE Thai_CI_AS
