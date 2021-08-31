@@ -9,7 +9,7 @@ const table = database.define(
       type: Sequelize.INTEGER,
       autoIncrement: true,
       primaryKey: true,
-    },
+    }, 
     empNumber: {
       type: Sequelize.STRING,
       allowNull: false,
@@ -25,6 +25,12 @@ const table = database.define(
       type: Sequelize.DATE,
     },
     seccondVaccineDate: {
+      type: Sequelize.DATE,
+    },
+    thirdforthVaccineDate: {
+      type: Sequelize.DATE,
+    },
+    fourthVaccineDate: {
       type: Sequelize.DATE,
     },
     bookVaccineStatus: {
@@ -49,6 +55,12 @@ const table = database.define(
       type: Sequelize.STRING,
     },
     vaccine2: {
+      type: Sequelize.STRING,
+    },
+    vaccine3: {
+      type: Sequelize.STRING,
+    },
+    vaccine4: {
       type: Sequelize.STRING,
     },
   },
