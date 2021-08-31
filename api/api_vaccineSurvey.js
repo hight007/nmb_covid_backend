@@ -58,21 +58,31 @@ router.get('/survey', async (req, res) => {
 	  a.[vaccineStatus] as 'สถานะการฉีดวัคซีนของท่าน : ฉีดแล้ว' ,
 	  CONVERT(VARCHAR, a.[firstVaccineDate] , 105) as 'ระบุวันที่ฉีดเข็มที่ 1',
 	  CONVERT(VARCHAR, a.[seccondVaccineDate] , 105) as 'ระบุวันที่ฉีดเข็มที่ 2' ,
+	  CONVERT(VARCHAR, a.[thirdforthVaccineDate] , 105) as 'ระบุวันที่ฉีดเข็มที่ 3',
+	  CONVERT(VARCHAR, a.[fourthVaccineDate] , 105) as 'ระบุวันที่ฉีดเข็มที่ 4' ,
 	  a.[bookVaccineStatus] as 'ยังไม่ทราบวันที่ฉีด / รอการยืนยัน',
 	  a.[noBookVaccineReason] as 'ระบุสาเหตุ ยังไม่สามารถจองได้',
 	  iif(a.[isAggreeInformation] = 0 ,'not agree','agree') as 'ข้าพเจ้ายินยอมให้ข้อมูลกับบริษัทฯ',
 	  CONVERT(VARCHAR, a.[updatedAt] AT TIME ZONE 'UTC' AT TIME ZONE 'SE Asia Standard Time' , 120) as 'เวลาที่กรอกข้อมูล',
 	  a.vaccine1 as 'วัคซีนเข็มที่หนึ่ง',
 	  a.vaccine2 as 'วัคซีนเข็มที่สอง',
+	  a.vaccine3 as 'วัคซีนเข็มที่สาม',
+	  a.vaccine4 as 'วัคซีนเข็มที่สี่',
 	  iif(a.[isNeedVaccine] = 1 and [bookVaccineStatus] is null and a.[noBookVaccineReason] is null,
 		  iif(a.[firstVaccineDate] < getdate() ,
-			  iif(a.[seccondVaccineDate] < getdate() , 2 , 1), 0) ,0) as [vaccineDose]
+			  iif(a.[seccondVaccineDate] < getdate() , 2 , 1), 0) ,0) as [vaccineDose] ,
+	  iif(a.[isNeedVaccine] = 1 and [bookVaccineStatus] is null and a.[noBookVaccineReason] is null,
+		iif(a.[firstVaccineDate] < dateadd(HOUR , -18 ,getdate()) , 1 , 0) +
+		iif(a.[seccondVaccineDate] < dateadd(HOUR , -18 ,getdate()) , 1 , 0) +
+		iif(a.[thirdforthVaccineDate] < dateadd(HOUR , -18 ,getdate()) , 1 , 0) +
+		iif(a.[fourthVaccineDate] < dateadd(HOUR , -18 ,getdate()) , 1 , 0),
+		0) as [vaccineDose(New)]
 	  FROM ranked_messages a
 	  join [userMaster].[dbo].[all_employee_lists] b on a.[empNumber] = b.[employee_number] COLLATE Thai_CI_AS
 	  join [userMaster].[dbo].[divison_masters] c on b.[divisionCode] = c.[divisionCode] COLLATE Thai_CI_AS
 	  join [userMaster].[dbo].[plant_masters] d on c.[PlantCode] = d.[PlantCode] COLLATE Thai_CI_AS
 	  join sumByEmp e on a.[empNumber] = e.[empNumber] COLLATE Thai_CI_AS
-	  WHERE rn = 1
+	  WHERE rn = 1 and a.[isNeedVaccine] = 1 and [bookVaccineStatus] is null and a.[noBookVaccineReason] is null
 	  `,
       {
         type: QueryTypes.SELECT,
