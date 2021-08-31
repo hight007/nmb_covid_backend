@@ -82,7 +82,7 @@ router.get('/survey', async (req, res) => {
 	  join [userMaster].[dbo].[divison_masters] c on b.[divisionCode] = c.[divisionCode] COLLATE Thai_CI_AS
 	  join [userMaster].[dbo].[plant_masters] d on c.[PlantCode] = d.[PlantCode] COLLATE Thai_CI_AS
 	  join sumByEmp e on a.[empNumber] = e.[empNumber] COLLATE Thai_CI_AS
-	  WHERE rn = 1 and a.[isNeedVaccine] = 1 and [bookVaccineStatus] is null and a.[noBookVaccineReason] is null
+	  WHERE rn = 1
 	  `,
       {
         type: QueryTypes.SELECT,
