@@ -1,5 +1,6 @@
 const Sequelize = require("sequelize");
 const sequelize = new Sequelize("CovidCC ", "sa", "MICsa@admin", {
+  logging: false,
   host: "54.255.187.109",
   dialect: "mssql",
   dialectOptions: {
