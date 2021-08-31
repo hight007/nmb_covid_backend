@@ -161,7 +161,7 @@ router.get('/report', async (req, res) => {
       }
     );
 
-    const vaccineDose = await vaccine.sequelize.query(`WITH ranked_messages AS(
+    const vaccineDose = await vaccineSurvey.sequelize.query(`WITH ranked_messages AS(
       SELECT m.*, ROW_NUMBER() OVER(PARTITION BY[empNumber] ORDER BY id DESC) AS rn
         FROM[CovidCC].[dbo].[vaccineSurveys]  AS m
     ),
