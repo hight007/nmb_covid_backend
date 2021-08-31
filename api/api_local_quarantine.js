@@ -121,17 +121,17 @@ router.post("/record", async (req, res) => {
           pulse,
         };
         //temporary get image data for ai training
-        if (files.file) {
-          data.fileData = await fs.readFileSync(files.file.path);
-          data.fileType = files.file.type;
-        }
+        // if (files.file) {
+        //   data.fileData = await fs.readFileSync(files.file.path);
+        //   data.fileType = files.file.type;
+        // }
 
         let result = await local_quanrantine.create(data);
 
         //temporary get image data for ai training
-        if (files.file) {
-          await fs.unlinkSync(files.file.path);
-        }
+        // if (files.file) {
+        //   await fs.unlinkSync(files.file.path);
+        // }
 
         res.json({
           id: result.id,
