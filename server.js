@@ -4,6 +4,8 @@ const path = require("path");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const json2xls = require("json2xls");
+const cluster = require('cluster');
+const cCPUs = require('os').cpus().length;
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: false }));
@@ -33,6 +35,21 @@ app.use("/api/v1/sinopharm", require("./api/api_sinopharm"));
 app.use("/api/v1/rfid", require("./api/api_rfid"));
 app.use("/api/v1/symptoms", require("./api/api_symptoms"));
 
-app.listen(2009, () => {
-  console.log("Backend is running...");
-});
+if (cluster.isMaster) {
+  // Create a worker for each CPU
+  for (var i = 0; i < cCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('online', function (worker) {
+    console.log('Worker ' + worker.process.pid + ' is online.');
+  });
+  cluster.on('exit', function (worker, code, signal) {
+    console.log('worker ' + worker.process.pid + ' died.');
+  });
+} else {
+  app.listen(2009, () => {
+    console.log("Backend is running...");
+  });
+}
+ 
