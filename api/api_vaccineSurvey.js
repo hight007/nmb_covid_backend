@@ -161,7 +161,32 @@ router.get('/report', async (req, res) => {
       }
     );
 
-    res.json({ vaccineStatus, noNeedVaccineReason, vaccineType, api_result: constant.kResultOk })
+    const vaccineDose = await vaccine.sequelize.query(`WITH ranked_messages AS(
+      SELECT m.*, ROW_NUMBER() OVER(PARTITION BY[empNumber] ORDER BY id DESC) AS rn
+        FROM[CovidCC].[dbo].[vaccineSurveys]  AS m
+    ),
+      aTable as (
+        SELECT
+	  iif(a.[isNeedVaccine] = 1 and[bookVaccineStatus] is null and a.[noBookVaccineReason] is null,
+          iif(a.[firstVaccineDate] < dateadd(HOUR, -18, getdate()), 1, 0) +
+          iif(a.[seccondVaccineDate] < dateadd(HOUR, -18, getdate()), 1, 0) +
+          iif(a.[thirdforthVaccineDate] < dateadd(HOUR, -18, getdate()), 1, 0) +
+          iif(a.[fourthVaccineDate] < dateadd(HOUR, -18, getdate()), 1, 0),
+          0) as [vaccineDose]
+	  FROM ranked_messages a
+	  join[userMaster].[dbo].[all_employee_lists] b on a.[empNumber] = b.[employee_number] COLLATE Thai_CI_AS
+	  WHERE rn = 1 and a.[isNeedVaccine] = 1 and[bookVaccineStatus] is null and a.[noBookVaccineReason] is null
+    )
+    select[vaccineDose], count(*) as [Man]  from aTable
+    where[vaccineDose] > 0
+    group by[vaccineDose]
+    order by[vaccineDose]`,
+      {
+        type: QueryTypes.SELECT,
+      }
+    )
+
+    res.json({ vaccineStatus, noNeedVaccineReason, vaccineType, vaccineDose, api_result: constant.kResultOk })
   } catch (error) {
     console.log(error);
     res.json({ error, api_result: constant.kResultNok });
