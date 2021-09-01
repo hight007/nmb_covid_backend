@@ -69,14 +69,11 @@ router.get('/survey', async (req, res) => {
 	  a.vaccine3 as 'วัคซีนเข็มที่สาม',
 	  a.vaccine4 as 'วัคซีนเข็มที่สี่',
 	  iif(a.[isNeedVaccine] = 1 and [bookVaccineStatus] is null and a.[noBookVaccineReason] is null,
-		  iif(a.[firstVaccineDate] < getdate() ,
-			  iif(a.[seccondVaccineDate] < getdate() , 2 , 1), 0) ,0) as [vaccineDose] ,
-	  iif(a.[isNeedVaccine] = 1 and [bookVaccineStatus] is null and a.[noBookVaccineReason] is null,
-		iif(a.[firstVaccineDate] < dateadd(HOUR , -18 ,getdate()) , 1 , 0) +
-		iif(a.[seccondVaccineDate] < dateadd(HOUR , -18 ,getdate()) , 1 , 0) +
-		iif(a.[thirdforthVaccineDate] < dateadd(HOUR , -18 ,getdate()) , 1 , 0) +
-		iif(a.[fourthVaccineDate] < dateadd(HOUR , -18 ,getdate()) , 1 , 0),
-		0) as [vaccineDose(New)]
+		iif(a.[firstVaccineDate] < dateadd(HOUR , 0 ,getdate()) , 1 , 0) +
+		iif(a.[seccondVaccineDate] < dateadd(HOUR , 0 ,getdate()) , 1 , 0) +
+		iif(a.[thirdforthVaccineDate] < dateadd(HOUR , 0 ,getdate()) , 1 , 0) +
+		iif(a.[fourthVaccineDate] < dateadd(HOUR , 0 ,getdate()) , 1 , 0),
+		0) as [vaccineDose]
 	  FROM ranked_messages a
 	  join [userMaster].[dbo].[all_employee_lists] b on a.[empNumber] = b.[employee_number] COLLATE Thai_CI_AS
 	  join [userMaster].[dbo].[divison_masters] c on b.[divisionCode] = c.[divisionCode] COLLATE Thai_CI_AS
