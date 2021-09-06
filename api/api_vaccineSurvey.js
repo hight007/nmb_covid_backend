@@ -103,34 +103,24 @@ router.get('/report', async (req, res) => {
 
     const vaccineStatus = await vaccineSurvey.sequelize.query(
       `WITH ranked_messages AS (
-        SELECT m.*, ROW_NUMBER() OVER (PARTITION BY [empNumber] ORDER BY id DESC) AS rn
-        FROM [CovidCC].[dbo].[vaccineSurveys]  AS m
-
-      )
-      SELECT
-      count([empNumber]) as [Count],
-	  [vaccineStatus]
-	  FROM ranked_messages
-	  WHERE rn = 1
-	  group by [vaccineStatus]
-	  `,
-      {
-        type: QueryTypes.SELECT,
-      }
-    );
-
-    const noNeedVaccineReason = await vaccineSurvey.sequelize.query(
-      `WITH ranked_messages AS (
-        SELECT m.*, ROW_NUMBER() OVER (PARTITION BY [empNumber] ORDER BY id DESC) AS rn
-        FROM [CovidCC].[dbo].[vaccineSurveys]  AS m
-
-      )
-      SELECT
-      count([empNumber]) as [Count],
-	  [noNeedVaccineReason]
-	  FROM ranked_messages
-	  WHERE rn = 1 and [isNeedVaccine] = 0
-	  group by [noNeedVaccineReason]
+		SELECT m.*, ROW_NUMBER() OVER (PARTITION BY [empNumber] ORDER BY id DESC) AS rn
+		FROM [CovidCC].[dbo].[vaccineSurveys]  AS m
+      ), aaTable as (
+			select * from ranked_messages WHERE rn = 1
+	  ), bbTable as (
+			SELECT count(*) as [Count] ,
+			'no record' as [vaccineStatus]
+			from aaTable a right join[userMaster].[dbo].[all_employee_lists] b on a.[empNumber] = b.[employee_number] COLLATE Thai_CI_AS
+			where a.[empNumber] is null
+	  ), ccTable as (
+			SELECT
+			count([empNumber]) as [Count],
+			[vaccineStatus]
+			FROM aaTable
+			WHERE rn = 1
+			group by [vaccineStatus]
+	  )
+	  select * from ccTable union select * from bbTable
 	  `,
       {
         type: QueryTypes.SELECT,
@@ -158,32 +148,80 @@ router.get('/report', async (req, res) => {
       }
     );
 
-    const vaccineDose = await vaccineSurvey.sequelize.query(`WITH ranked_messages AS(
+	  const vaccineDose = await vaccineSurvey.sequelize.query(`WITH ranked_messages AS(
       SELECT m.*, ROW_NUMBER() OVER(PARTITION BY[empNumber] ORDER BY id DESC) AS rn
         FROM[CovidCC].[dbo].[vaccineSurveys]  AS m
-    ),
-      aTable as (
+    ), aaTable as (
+		select * from ranked_messages WHERE rn = 1
+	), aTable as (
         SELECT
-	  iif(a.[isNeedVaccine] = 1 and[bookVaccineStatus] is null and a.[noBookVaccineReason] is null,
+		iif(a.[isNeedVaccine] = 1 and[bookVaccineStatus] is null and a.[noBookVaccineReason] is null,
           iif(a.[firstVaccineDate] < dateadd(HOUR, -18, getdate()), 1, 0) +
           iif(a.[seccondVaccineDate] < dateadd(HOUR, -18, getdate()), 1, 0) +
           iif(a.[thirdforthVaccineDate] < dateadd(HOUR, -18, getdate()), 1, 0) +
           iif(a.[fourthVaccineDate] < dateadd(HOUR, -18, getdate()), 1, 0),
-          0) as [vaccineDose]
-	  FROM ranked_messages a
-	  join[userMaster].[dbo].[all_employee_lists] b on a.[empNumber] = b.[employee_number] COLLATE Thai_CI_AS
-	  WHERE rn = 1 and a.[isNeedVaccine] = 1 and[bookVaccineStatus] is null and a.[noBookVaccineReason] is null
-    )
-    select[vaccineDose], count(*) as [Man]  from aTable
-    where[vaccineDose] > 0
-    group by[vaccineDose]
-    order by[vaccineDose]`,
+			iif(a.[empNumber] is null, -1, 0)) as [vaccineDose],
+		  d.[PlantName]
+		FROM aaTable a
+	    right join[userMaster].[dbo].[all_employee_lists] b on a.[empNumber] = b.[employee_number] COLLATE Thai_CI_AS
+		join [userMaster].[dbo].[divison_masters] c on b.[divisionCode] = c.[divisionCode] COLLATE Thai_CI_AS
+		join [userMaster].[dbo].[plant_masters] d on c.[PlantCode] = d.[PlantCode] COLLATE Thai_CI_AS
+    ) , bTable as (
+		select
+			[vaccineDose],
+			[PlantName],
+			count(*) as [Man]  from aTable
+		group by [PlantName],[vaccineDose]
+	),	cTable as (
+		select
+			[vaccineDose],
+			count(*) as [Man]  from aTable
+		group by [vaccineDose]
+	),	dTable as (
+		select 'Total' as [PlantName] ,
+			isnull([-1],0) as [ไม่ลงข้อมูล],
+			isnull([0],0) as [ยังไม่ได้ฉีด],
+			isnull([1],0) as [ฉีดแล้ว 1 เข็ม],
+			isnull([2],0) as [ฉีดแล้ว 2 เข็ม],
+			isnull([3],0) as [ฉีดแล้ว 3 เข็ม],
+			isnull([4],0) as [ฉีดแล้ว 4 เข็ม],
+			isnull([-1],0)+isnull([0],0)+isnull([1],0)+isnull([2],0)+isnull([3],0)+isnull([4],0) as [ทั้งหมด]
+		from cTable
+		PIVOT (SUM([Man]) FOR [vaccineDose] IN([-1],[0],[1],[2],[3],[4])) AS P
+	) , eTable as (
+		select [PlantName] ,
+			cast(isnull([-1],0) as decimal(10,0)) as [ไม่ลงข้อมูล],
+			cast(isnull([0],0) as decimal(10,0)) as [ยังไม่ได้ฉีด],
+			cast(isnull([1],0) as decimal(10,0)) as [ฉีดแล้ว 1 เข็ม],
+			cast(isnull([2],0) as decimal(10,0)) as [ฉีดแล้ว 2 เข็ม],
+			cast(isnull([3],0) as decimal(10,0)) as [ฉีดแล้ว 3 เข็ม],
+			cast(isnull([4],0) as decimal(10,0)) as [ฉีดแล้ว 4 เข็ม],
+			cast(isnull([-1],0) +
+				isnull([0],0)+isnull([1],0) +
+				isnull([2],0)+isnull([3],0) +
+				isnull([4],0) as decimal(10,0)) as [ทั้งหมด]
+		from bTable
+		PIVOT (SUM([Man]) FOR [vaccineDose] IN([-1],[0],[1],[2],[3],[4])) AS P
+		union all select * from dTable
+	)
+	select  * ,
+		cast(([ไม่ลงข้อมูล]/[ทั้งหมด])*100 as numeric(10,2)) as [%ไม่ลงข้อมูล] ,
+		cast(([ยังไม่ได้ฉีด]/[ทั้งหมด])*100 as numeric(10,2)) as [%ยังไม่ได้ฉีด] ,
+		cast(([ฉีดแล้ว 1 เข็ม]/[ทั้งหมด])*100 as numeric(10,2)) as [%ฉีดแล้ว 1 เข็ม] ,
+		cast(([ฉีดแล้ว 2 เข็ม]/[ทั้งหมด])*100 as numeric(10,2)) as [%ฉีดแล้ว 2 เข็ม] ,
+		cast(([ฉีดแล้ว 3 เข็ม]/[ทั้งหมด])*100 as numeric(10,2)) as [%ฉีดแล้ว 3 เข็ม] ,
+		cast(([ฉีดแล้ว 4 เข็ม]/[ทั้งหมด])*100 as numeric(10,2)) as [%ฉีดแล้ว 4 เข็ม]
+	from eTable
+	order by Case [PlantName]
+    When 'Total' Then 99
+    Else 1 End ,
+	(([ฉีดแล้ว 1 เข็ม]/[ทั้งหมด]) + ([ฉีดแล้ว 2 เข็ม]/[ทั้งหมด]) + ([ฉีดแล้ว 3 เข็ม]/[ทั้งหมด]) + ([ฉีดแล้ว 4 เข็ม]/[ทั้งหมด])) desc`,
       {
         type: QueryTypes.SELECT,
       }
     )
 
-    res.json({ vaccineStatus, noNeedVaccineReason, vaccineType, vaccineDose, api_result: constant.kResultOk })
+    res.json({ vaccineStatus, vaccineType, vaccineDose, api_result: constant.kResultOk })
   } catch (error) {
     console.log(error);
     res.json({ error, api_result: constant.kResultNok });
