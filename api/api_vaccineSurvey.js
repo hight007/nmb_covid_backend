@@ -10,30 +10,34 @@ const { QueryTypes } = require("sequelize");
 const moment = require("moment");
 
 router.get("/employee_master/:employee_number", async (req, res) => {
-  try {
-    const { employee_number } = req.params;
-    let result = await all_emp_master.findOne({ where: { employee_number } });
-    res.json({ result, api_result: constant.kResultOk });
-  } catch (error) {
-    res.json({ error, api_result: constant.kResultNok });
-  }
+	try {
+		const { employee_number } = req.params;
+		let result = await all_emp_master.findOne({ where: { employee_number } });
+		res.json({ result, api_result: constant.kResultOk });
+	} catch (error) {
+		res.json({ error, api_result: constant.kResultNok });
+	}
 });
 
 router.post("/survey", async (req, res) => {
-  try {
-    let result = await vaccineSurvey.create(req.body);
-    res.json({ result, api_result: constant.kResultOk });
-  } catch (error) {
-    console.log(error);
-    res.json({ error, api_result: constant.kResultNok });
-  }
+	try {
+		let result = await vaccineSurvey.create(req.body);
+		res.json({ result, api_result: constant.kResultOk });
+	} catch (error) {
+		console.log(error);
+		res.json({ error, api_result: constant.kResultNok });
+	}
 });
 
-router.get('/survey', async (req, res) => {
-  try {
-    console.log('start vaccine survey');
-    const response = await vaccineSurvey.sequelize.query(
-      `WITH ranked_messages AS (
+router.get('/survey/:divisionCode', async (req, res) => {
+	try {
+		const { divisionCode } = req.params
+		var conditionDivisionCode = ''
+		if (divisionCode != 'All') {
+			conditionDivisionCode = `and b.[divisionCode] = '${divisionCode}'`
+		}
+		const response = await vaccineSurvey.sequelize.query(
+			`WITH ranked_messages AS (
         SELECT m.*, ROW_NUMBER() OVER (PARTITION BY [empNumber] ORDER BY id DESC) AS rn
         FROM [CovidCC].[dbo].[vaccineSurveys]  AS m
       ),
@@ -79,30 +83,29 @@ router.get('/survey', async (req, res) => {
 	  join [userMaster].[dbo].[divison_masters] c on b.[divisionCode] = c.[divisionCode] COLLATE Thai_CI_AS
 	  join [userMaster].[dbo].[plant_masters] d on c.[PlantCode] = d.[PlantCode] COLLATE Thai_CI_AS
 	  join sumByEmp e on a.[empNumber] = e.[empNumber] COLLATE Thai_CI_AS
-	  WHERE rn = 1
-	  `,
-      {
-        type: QueryTypes.SELECT,
-      }
-    );
-    var excelFilePath = `files/Doc/vaccine_survey_${moment().format('DDMMYYYY')}.xlsx`;
+	  WHERE rn = 1 ${conditionDivisionCode}`,
+			{
+				type: QueryTypes.SELECT,
+			}
+		);
+		var excelFilePath = `files/Doc/vaccine_survey_${moment().format('DDMMYYYY')}_${divisionCode}.xlsx`;
 
-    var xls = await json2xls(response);
-    await fs.writeFileSync(excelFilePath, xls, "binary");
+		var xls = await json2xls(response);
+		await fs.writeFileSync(excelFilePath, xls, "binary");
 
-    res.download(excelFilePath);
-  } catch (error) {
-    console.log(error);
-    res.json({ error, api_result: constant.kResultNok });
-  }
+		res.download(excelFilePath);
+	} catch (error) {
+		console.log(error);
+		res.json({ error, api_result: constant.kResultNok });
+	}
 })
 
 router.get('/report', async (req, res) => {
-  try {
-    console.log('start vaccine survey');
+	try {
+		console.log('start vaccine survey');
 
-    const vaccineStatus = await vaccineSurvey.sequelize.query(
-      `WITH ranked_messages AS (
+		const vaccineStatus = await vaccineSurvey.sequelize.query(
+			`WITH ranked_messages AS (
 		SELECT m.*, ROW_NUMBER() OVER (PARTITION BY [empNumber] ORDER BY id DESC) AS rn
 		FROM [CovidCC].[dbo].[vaccineSurveys]  AS m
       ), aaTable as (
@@ -122,13 +125,13 @@ router.get('/report', async (req, res) => {
 	  )
 	  select * from ccTable union select * from bbTable
 	  `,
-      {
-        type: QueryTypes.SELECT,
-      }
-    );
+			{
+				type: QueryTypes.SELECT,
+			}
+		);
 
-    const vaccineType = await vaccineSurvey.sequelize.query(
-      `WITH ranked_messages AS (
+		const vaccineType = await vaccineSurvey.sequelize.query(
+			`WITH ranked_messages AS (
         SELECT m.*, ROW_NUMBER() OVER (PARTITION BY [empNumber] ORDER BY id DESC) AS rn
         FROM [CovidCC].[dbo].[vaccineSurveys]  AS m
 
@@ -143,12 +146,12 @@ router.get('/report', async (req, res) => {
 	   group by [VaccineType]
 	   order by count(*) desc
 	  `,
-      {
-        type: QueryTypes.SELECT,
-      }
-    );
+			{
+				type: QueryTypes.SELECT,
+			}
+		);
 
-	  const vaccineDose = await vaccineSurvey.sequelize.query(`WITH ranked_messages AS(
+		const vaccineDose = await vaccineSurvey.sequelize.query(`WITH ranked_messages AS(
       SELECT m.*, ROW_NUMBER() OVER(PARTITION BY[empNumber] ORDER BY id DESC) AS rn
         FROM[CovidCC].[dbo].[vaccineSurveys]  AS m
     ), aaTable as (
@@ -216,42 +219,46 @@ router.get('/report', async (req, res) => {
     When 'Total' Then 99
     Else 1 End ,
 	(([ฉีดแล้ว 1 เข็ม]/[ทั้งหมด]) + ([ฉีดแล้ว 2 เข็ม]/[ทั้งหมด]) + ([ฉีดแล้ว 3 เข็ม]/[ทั้งหมด]) + ([ฉีดแล้ว 4 เข็ม]/[ทั้งหมด])) desc`,
-      {
-        type: QueryTypes.SELECT,
-      }
-    )
+			{
+				type: QueryTypes.SELECT,
+			}
+		)
 
-    res.json({ vaccineStatus, vaccineType, vaccineDose, api_result: constant.kResultOk })
-  } catch (error) {
-    console.log(error);
-    res.json({ error, api_result: constant.kResultNok });
-  }
+		res.json({ vaccineStatus, vaccineType, vaccineDose, api_result: constant.kResultOk })
+	} catch (error) {
+		console.log(error);
+		res.json({ error, api_result: constant.kResultNok });
+	}
 })
 
-router.get('/missing', async (req, res) => {
-  try {
-    const response = await vaccineSurvey.sequelize.query(
-      `SELECT a.* , [divisionName] , d.[PlantName]
+router.get('/missing/:divisionCode', async (req, res) => {
+	try {
+		const { divisionCode } = req.params
+		var conditionDivisionCode = ''
+		if (divisionCode != 'All') {
+			conditionDivisionCode = `and a.[divisionCode] = '${divisionCode}'`
+		}
+		const response = await vaccineSurvey.sequelize.query(
+			`SELECT a.* , [divisionName] , d.[PlantName]
       FROM [userMaster].[dbo].[all_employee_lists] a 
       left join [CovidCC].[dbo].[vaccineSurveys] b on a.[employee_number] = b.[empNumber] COLLATE Thai_CI_AS
       join [userMaster].[dbo].[divison_masters] c on a.[divisionCode] = c.[divisionCode] COLLATE Thai_CI_AS
       join [userMaster].[dbo].[plant_masters] d on c.[PlantCode] = d.[PlantCode] COLLATE Thai_CI_AS
-      where b.[id] is null
-	  `,
-      {
-        type: QueryTypes.SELECT,
-      }
-    );
-    var excelFilePath = `files/Doc/missing_vaccine_survey_${moment().format('DDMMYYYY')}.xlsx`;
+      where b.[id] is null  ${conditionDivisionCode}`,
+			{
+				type: QueryTypes.SELECT,
+			}
+		);
+		var excelFilePath = `files/Doc/missing_vaccine_survey_${moment().format('DDMMYYYY')}_${divisionCode}.xlsx`;
 
-    var xls = await json2xls(response);
-    await fs.writeFileSync(excelFilePath, xls, "binary");
+		var xls = await json2xls(response);
+		await fs.writeFileSync(excelFilePath, xls, "binary");
 
-    res.download(excelFilePath);
-  } catch (error) {
-    console.log(error);
-    res.json({ error, api_result: constant.kResultNok });
-  }
+		res.download(excelFilePath);
+	} catch (error) {
+		console.log(error);
+		res.json({ error, api_result: constant.kResultNok });
+	}
 })
 
 module.exports = router;
