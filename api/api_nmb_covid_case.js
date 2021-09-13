@@ -72,7 +72,7 @@ router.post('/case', async (req, res) => {
                 updateBy,
             };
 
-            if (files.fileData_positive_result == null) {
+            if (files.fileData_positive_result) {
                 data.fileData_positive_result = await fs.readFileSync(fileData_positive_result)
                 data.fileType_positive_result = fileType_positive_result
                 // return res.json({ error: employee_number + ' ไม่ได้อัพโหลดผลการตรวจโควิด', api_result: constant.kResultNok })
