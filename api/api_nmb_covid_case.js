@@ -47,6 +47,8 @@ router.post('/case', async (req, res) => {
             const fileData_positive_result = files.fileData_positive_result.path
             const fileType_positive_result = files.fileData_positive_result.type
 
+            console.log('set path successfully');
+
             // check have this employee_number
             let casesThis_employee_number = await nmb_covid_case.findAll({
                 where: { employee_number },
@@ -81,7 +83,7 @@ router.post('/case', async (req, res) => {
                 //check this employee_number have already return to work on last case
                 return res.json({ error: employee_number + ' ยังไม่ได้กลับมาทำงานหรือมีผลเป็นลบ', api_result: constant.kResultNok })
             }
-            
+
             const result = await nmb_covid_case.create(data);
 
             if (files.fileData_positive_result != null) {
