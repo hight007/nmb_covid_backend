@@ -81,8 +81,13 @@ router.post('/case', async (req, res) => {
                 //check this employee_number have already return to work on last case
                 return res.json({ error: employee_number + ' ยังไม่ได้กลับมาทำงานหรือมีผลเป็นลบ', api_result: constant.kResultNok })
             }
+            
             const result = await nmb_covid_case.create(data);
-            await fs.unlinkSync(fileData_positive_result);
+
+            if (files.fileData_positive_result != null) {
+                await fs.unlinkSync(fileData_positive_result);
+            }
+
             res.json({ id: result.case_id, api_result: constant.kResultOk })
         });
     } catch (error) {
