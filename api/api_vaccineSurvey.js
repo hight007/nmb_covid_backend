@@ -124,6 +124,7 @@ router.get('/report', async (req, res) => {
 			group by [vaccineStatus]
 	  )
 	  select * from ccTable union select * from bbTable
+	  order by vaccineStatus
 	  `,
 			{
 				type: QueryTypes.SELECT,
