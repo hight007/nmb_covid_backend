@@ -44,9 +44,7 @@ router.post('/case', async (req, res) => {
                 updateBy,
             } = fields
 
-            const fileData_positive_result = files.fileData_positive_result.path
-            const fileType_positive_result = files.fileData_positive_result.type
-
+            
             console.log('set path successfully');
 
             // check have this employee_number
@@ -75,6 +73,9 @@ router.post('/case', async (req, res) => {
             };
 
             if (files.fileData_positive_result != null) {
+                const fileData_positive_result = files.fileData_positive_result.path
+                const fileType_positive_result = files.fileData_positive_result.type
+
                 data.fileData_positive_result = await fs.readFileSync(fileData_positive_result)
                 data.fileType_positive_result = fileType_positive_result
                 // return res.json({ error: employee_number + ' ไม่ได้อัพโหลดผลการตรวจโควิด', api_result: constant.kResultNok })
@@ -86,9 +87,9 @@ router.post('/case', async (req, res) => {
 
             const result = await nmb_covid_case.create(data);
 
-            if (files.fileData_positive_result != null) {
-                await fs.unlinkSync(fileData_positive_result);
-            }
+            // if (files.fileData_positive_result != null) {
+            //     await fs.unlinkSync(fileData_positive_result);
+            // }
 
             res.json({ id: result.case_id, api_result: constant.kResultOk })
         });
