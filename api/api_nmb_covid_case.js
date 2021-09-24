@@ -80,7 +80,7 @@ router.post('/case', async (req, res) => {
                 data.fileType_positive_result = fileType_positive_result
                 // return res.json({ error: employee_number + ' ไม่ได้อัพโหลดผลการตรวจโควิด', api_result: constant.kResultNok })
             }
-            if (casesThis_employee_number.length > 0 && casesThis_employee_number.returnToWork_date == null) {
+            if (casesThis_employee_number.length > 0 && casesThis_employee_number[casesThis_employee_number.length - 1].returnToWork_date == null) {
                 //check this employee_number have already return to work on last case
                 return res.json({ error: employee_number + ' ยังไม่ได้กลับมาทำงานหรือมีผลเป็นลบ', api_result: constant.kResultNok })
             }
