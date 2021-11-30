@@ -262,4 +262,18 @@ router.get('/missing/:divisionCode', async (req, res) => {
 	}
 })
 
+router.get('/surveyResult/:empNumber', async (req, res) => {
+	try {
+		const { empNumber } = req.params
+		const result = await vaccineSurvey.findOne(
+			{ where: { empNumber }, order: [['createdAt', 'DESC'],] }
+		)
+
+		res.json({ result, api_result: constant.kResultOk });
+	} catch (error) {
+		console.log(error);
+		res.json({ error, api_result: constant.kResultNok });
+	}
+})
+
 module.exports = router;
