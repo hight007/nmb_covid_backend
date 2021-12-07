@@ -34,6 +34,9 @@ app.use("/api/v1/dom", require("./api/api_n_domitory"));
 app.use("/api/v1/sinopharm", require("./api/api_sinopharm"));
 app.use("/api/v1/rfid", require("./api/api_rfid"));
 app.use("/api/v1/symptoms", require("./api/api_symptoms"));
+app.use("/api/v1/activity_transaction", require("./api/api_activity_transaction"));
+app.use("/api/v1/activity_master", require("./api/api_activity_master"));
+app.use("/api/v1/risk_provinces", require("./api/api_risk_provinces"));
 
 if (cluster.isMaster) {
   // Create a worker for each CPU
@@ -52,4 +55,4 @@ if (cluster.isMaster) {
     console.log("Backend is running...");
   });
 }
- 
+

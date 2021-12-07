@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const constant = require("../constant/constant");
 const provinces = require("../model/provinces");
+const fs = require("fs-extra");
 
 router.get("/distinctProvinces", async (req, res) => {
   try {
@@ -46,4 +47,12 @@ router.get("/distinctSubDistrict/:districtCode", async (req, res) => {
   }
 });
 
+router.get("/thaiProvinces", async (req, res) => {
+  let rawdata = await fs.readFileSync('json/thai_provinces.json', 'utf8');
+  let thai_provinces = JSON.parse(rawdata);
+
+  res.json(thai_provinces)
+})
+
 module.exports = router;
+
