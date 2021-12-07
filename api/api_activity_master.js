@@ -8,7 +8,7 @@ const activity_master = require('../model/activity_master');
 //activity_master
 router.get("/activity", async (req, res) => {
     try {
-        let result = await activity_master.findAll({});
+        let result = await activity_master.findAll({ order: [["createdAt", "ASC"]],});
         res.json({
             api_result: constants.kResultOk,
             result,

@@ -8,7 +8,7 @@ const risk_provinces = require('../model/risk_provinces');
 //risk_provinces
 router.get("/provinces", async (req, res) => {
     try {
-        let result = await risk_provinces.findAll({});
+        let result = await risk_provinces.findAll({ order: [["createdAt", "ASC"]]});
         res.json({
             api_result: constants.kResultOk,
             result,
