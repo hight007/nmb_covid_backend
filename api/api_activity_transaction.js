@@ -41,7 +41,9 @@ router.get("/activity_employee_number/:employee_number", async (req, res) => {
 router.post("/activity", async (req, res) => {
     try {
         // encrypt password
+        console.log(req.body);
         let result = await activity_transaction.create(req.body);
+        
         res.json({
             result,
             api_result: constants.kResultOk,
