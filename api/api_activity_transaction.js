@@ -24,12 +24,13 @@ router.get("/activity", async (req, res) => {
 router.get("/activity_employee_number/:employee_number", async (req, res) => {
     try {
         const { employee_number } = req.params;
-        let result = await activity_transaction.findAll({ where: employee_number });
+        let result = await activity_transaction.findAll({ where: { employee_number } });
         res.json({
             api_result: constants.kResultOk,
             result,
         });
     } catch (error) {
+        console.log(error);
         res.json({
             api_result: constants.kResultNok,
             error,
@@ -46,6 +47,7 @@ router.post("/activity", async (req, res) => {
             api_result: constants.kResultOk,
         });
     } catch (error) {
+        console.log(error);
         res.json({
             error,
             api_result: constants.kResultNok,

@@ -31,10 +31,6 @@ const table = database.define(
             type: Sequelize.BOOLEAN,
             allowNull: false,
         },
-        updater: {
-            type: Sequelize.STRING,
-            allowNull: false,
-        },
     },
     {
         //option
