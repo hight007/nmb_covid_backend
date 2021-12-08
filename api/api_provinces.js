@@ -50,9 +50,21 @@ router.get("/distinctSubDistrict/:districtCode", async (req, res) => {
 router.get("/thaiProvinces", async (req, res) => {
   let rawdata = await fs.readFileSync('json/thai_provinces.json', 'utf8');
   let thai_provinces = JSON.parse(rawdata);
-
+  thai_provinces.sort(GetSortOrder("name_th"))
   res.json(thai_provinces)
 })
+
+function GetSortOrder(prop) {
+  return function (a, b) {
+    if (a[prop] > b[prop]) {
+      return 1;
+    } else if (a[prop] < b[prop]) {
+      return -1;
+    }
+    return 0;
+  }
+}
+
 
 module.exports = router;
 
