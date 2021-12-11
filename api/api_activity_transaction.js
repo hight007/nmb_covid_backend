@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const constants = require("./../constant/constant");
+const moment = require("moment");
 
 //models
 const activity_transaction = require('../model/activity_transaction');
@@ -43,7 +44,7 @@ router.post("/activity", async (req, res) => {
         // encrypt password
         console.log(req.body);
         let result = await activity_transaction.create(req.body);
-        
+
         res.json({
             result,
             api_result: constants.kResultOk,
@@ -77,14 +78,19 @@ router.put("/activity", async (req, res) => {
 
 router.delete("/activity", async (req, res) => {
     try {
+        const { employee_number, activity_date } = req.body
         let result = await activity_transaction.destroy({
-            where: { transaction_id: req.body.transaction_id },
+            where: {
+                employee_number,
+                activity_date: moment(activity_date).format('YYYY-MM-DD'),
+            },
         });
         res.json({
             result,
             api_result: constants.kResultOk,
         });
     } catch (error) {
+        console.log(error);
         res.json({
             api_result: constants.kResultNok,
             error,
