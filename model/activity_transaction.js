@@ -23,6 +23,10 @@ const table = database.define(
             type: Sequelize.STRING,
             allowNull: false,
         },
+        place: {
+            type: Sequelize.STRING,
+            allowNull: false,
+        },
         activity: {
             type: Sequelize.STRING,
             allowNull: false,
