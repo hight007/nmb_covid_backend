@@ -5,12 +5,12 @@ const table = database.define(
     "long_holiday_date",
     {
         long_holiday_date: {
-            type: Sequelize.DATE,
+            type: Sequelize.DATEONLY,
             allowNull: false,
             primaryKey: true,
         },
         alert_date: {
-            type: Sequelize.DATE,
+            type: Sequelize.DATEONLY,
             allowNull: false,
             // primaryKey: true,
         },

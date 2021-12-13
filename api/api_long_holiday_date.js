@@ -2,6 +2,8 @@ const express = require("express");
 const router = express.Router();
 const constants = require("./../constant/constant");
 const moment = require("moment");
+const Sequelize = require("sequelize");
+const Op = Sequelize.Op;
 
 //models
 const long_holiday_date = require('../model/long_holiday_date');
@@ -22,10 +24,20 @@ router.get("/holiday", async (req, res) => {
     }
 });
 
-router.get("/is_long_holiday/:long_holiday_date", async (req, res) => {
+router.get("/is_long_holiday/:long_holiday_dates", async (req, res) => {
     try {
-        const { long_holiday_date } = req.params;
-        let result = await long_holiday_date.findAll({ where: { long_holiday_date } });
+        const { long_holiday_dates } = req.params;
+
+        let result = await long_holiday_date.findAll({
+            where: {
+                long_holiday_date:
+                {
+                    [Op.between]: [moment(long_holiday_dates).format('YYYY-MM-DD'), moment(long_holiday_dates).add(1, 'days').format('YYYY-MM-DD')]
+                }
+            }
+        });
+        console.log(result);
+        console.log(result.length);
         if (result.length > 0) {
             result = true
         } else {
@@ -36,6 +48,7 @@ router.get("/is_long_holiday/:long_holiday_date", async (req, res) => {
             result,
         });
     } catch (error) {
+        console.log(error);
         res.json({
             api_result: constants.kResultNok,
             error,
