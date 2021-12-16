@@ -56,6 +56,25 @@ router.get("/is_long_holiday/:long_holiday_dates", async (req, res) => {
     }
 });
 
+router.get("/list_alert_date/", async (req, res) => {
+    try {
+        let result = await long_holiday_date.findAll({
+            attributes: [
+                [Sequelize.fn('DISTINCT', Sequelize.col('alert_date')), 'alert_date'],
+            ]
+        });
+        res.json({
+            api_result: constants.kResultOk,
+            result,
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({
+            api_result: constants.kResultNok,
+            error,
+        });
+    }
+});
 
 router.post("/holiday", async (req, res) => {
     try {

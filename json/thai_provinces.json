@@ -1,5 +1,14 @@
 [
     {
+      "id": "99",
+      "name_th": "ต่างประเทศ",
+      "name_en": "oversea",
+      "geography_id": "9",
+      "created_at": "9/8/2019 03:33:09",
+      "updated_at": "9/8/2019 03:33:09",
+      "deleted_at": ""
+    },
+    {
       "id": "1",
       "name_th": "กรุงเทพมหานคร",
       "name_en": "Bangkok",
@@ -688,15 +697,6 @@
       "name_th": "บึงกาฬ",
       "name_en": "buogkan",
       "geography_id": "3",
-      "created_at": "9/8/2019 03:33:09",
-      "updated_at": "9/8/2019 03:33:09",
-      "deleted_at": ""
-    },
-    {
-      "id": "99",
-      "name_th": "ต่างประเทศ",
-      "name_en": "oversea",
-      "geography_id": "9",
       "created_at": "9/8/2019 03:33:09",
       "updated_at": "9/8/2019 03:33:09",
       "deleted_at": ""

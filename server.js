@@ -38,6 +38,7 @@ app.use("/api/v1/activity_transaction", require("./api/api_activity_transaction"
 app.use("/api/v1/activity_master", require("./api/api_activity_master"));
 app.use("/api/v1/risk_provinces", require("./api/api_risk_provinces"));
 app.use("/api/v1/long_holiday_date", require("./api/api_long_holiday_date"));
+app.use("/api/v1/long_holiday_report" , require("./api/api_long_holiday_report"))
 
 if (cluster.isMaster) {
   // Create a worker for each CPU
