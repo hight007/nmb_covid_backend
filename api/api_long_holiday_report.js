@@ -57,7 +57,54 @@ SELECT [transaction_id]
 });
 
 router.get("/long_holiday_missing/:alert_date/:divisionCode" , async (req, res) => {
-    
+    try {
+        const { alert_date, divisionCode } = req.params;
+        var divisionCondition = ''
+        if (divisionCode !== 'All') {
+            divisionCondition = ` and e.[divisionCode] = '${divisionCode}'`
+        }
+
+        let result = await activity_master.sequelize.query(`
+WITH tableA as (
+SELECT [transaction_id]
+      ,a.[employee_number]
+      ,[activity]
+      ,[risk]
+	  ,cast([activity_date] as date) as [activity_date]
+	  FROM [CovidCC].[dbo].[activity_transactions] a join [CovidCC].[dbo].[long_holiday_dates] l
+  on  cast(DATEADD(HOUR,7,a.[activity_date]) as date) = cast(l.[long_holiday_date] as date)
+  where cast(l.[alert_date] as date) = '${alert_date}'
+)
+
+SELECT e.[employee_number]
+	  ,e.[employee_name]
+	  ,e.[employee_type]
+	  ,d.[divisionName]
+	  ,e.[sectionCode]
+	  ,e.[processCode]
+	  ,p.[PlantName]
+  FROM tableA a
+  right join  [userMaster].[dbo].[all_employee_lists] e
+  on e.employee_number = a.employee_number COLLATE Thai_CI_AS
+  join [userMaster].[dbo].[divison_masters] d 
+  on e.[divisionCode] = d.[divisionCode]
+  join [userMaster].[dbo].[plant_masters] p 
+  on d.[PlantCode] = p.[PlantCode]
+  where [transaction_id] is null ${divisionCondition}`,
+            {
+                type: QueryTypes.SELECT,
+            })
+        res.json({
+            api_result: constants.kResultOk,
+            result,
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({
+            api_result: constants.kResultNok,
+            error,
+        });
+    }
 })
 
 module.exports = router;
