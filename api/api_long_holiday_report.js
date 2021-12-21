@@ -16,12 +16,17 @@ const alert_mail = require("./../model/mail_alert_master");
 const division_db = require("./../model/division_master");
 
 
-router.get("/long_holiday_report/:alert_date/:divisionCode", async (req, res) => {
+router.get("/long_holiday_report/:alert_date/:plantName/:divisionCode", async (req, res) => {
     try {
-        const { alert_date, divisionCode } = req.params;
+        const { alert_date, divisionCode, plantName } = req.params;
         var divisionCondition = ''
         if (divisionCode !== 'All') {
             divisionCondition = ` and e.[divisionCode] = '${divisionCode}'`
+        }
+
+        var plantCondition = ''
+        if (plantName !== 'All') {
+            plantCondition = ` and p.[PlantName] = '${plantName}'`
         }
 
         let result = await activity_master.sequelize.query(`
@@ -43,14 +48,14 @@ SELECT [transaction_id]
       ,a.[updatedAt]
   FROM [CovidCC].[dbo].[activity_transactions] a join [CovidCC].[dbo].[long_holiday_dates] l
   on  cast(DATEADD(HOUR,7,a.[activity_date]) as date) = cast(l.[long_holiday_date] as date)
-  join [userMaster].[dbo].[all_employee_lists] e
+  join [userMaster].[dbo].[employee_lists] e
   on e.employee_number = a.employee_number COLLATE Thai_CI_AS
   join [userMaster].[dbo].[divison_masters] d 
   on e.[divisionCode] = d.[divisionCode]
   join [userMaster].[dbo].[plant_masters] p 
   on d.[PlantCode] = p.[PlantCode]
-  where cast(l.[alert_date] as date) = '${alert_date}' ${divisionCondition}`,
-            {
+  where cast(l.[alert_date] as date) = '${alert_date}' ${divisionCondition} ${plantCondition}`,
+            { 
                 type: QueryTypes.SELECT,
             })
         res.json({
@@ -66,12 +71,17 @@ SELECT [transaction_id]
     }
 });
 
-router.get("/long_holiday_missing/:alert_date/:divisionCode", async (req, res) => {
+router.get("/long_holiday_missing/:alert_date/:plantName/:divisionCode", async (req, res) => {
     try {
-        const { alert_date, divisionCode } = req.params;
+        const { alert_date, divisionCode, plantName } = req.params;
         var divisionCondition = ''
         if (divisionCode !== 'All') {
             divisionCondition = ` and e.[divisionCode] = '${divisionCode}'`
+        }
+
+        var plantCondition = ''
+        if (plantName !== 'All') {
+            plantCondition = ` and p.[PlantName]  = '${plantName}'`
         }
 
         const long_holiday_date_count = await long_holiday_date.findAll({ where: { alert_date } })
@@ -98,13 +108,13 @@ SELECT a.[employee_number]
 	  ,e.[sectionCode]
 	  ,e.[processCode]
 	  ,p.[PlantName]
-  from TableB b right join  [userMaster].[dbo].[all_employee_lists] e
+  from TableB b right join  [userMaster].[dbo].[employee_lists] e
   on e.employee_number = b.employee_number COLLATE Thai_CI_AS
   join [userMaster].[dbo].[divison_masters] d 
   on e.[divisionCode] = d.[divisionCode]
   join [userMaster].[dbo].[plant_masters] p 
   on d.[PlantCode] = p.[PlantCode]
-where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} ${divisionCondition}`,
+where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} ${divisionCondition} ${plantCondition}`,
             {
                 type: QueryTypes.SELECT,
             })
@@ -159,16 +169,14 @@ SELECT a.[employee_number]
   from tableA
   group by [employee_number]
   )
-  select 
-  isnull(b.activity_date , 0) as [activity date count]
-	  ,e.[employee_number]
+  select
+	   e.[employee_number]
 	  ,e.[employee_name]
-	  ,e.[employee_type]
-	  ,d.[divisionName]
-	  ,e.[sectionCode]
-	  ,e.[processCode]
-	  ,p.[PlantName]
-  from TableB b right join  [userMaster].[dbo].[all_employee_lists] e
+	  ,e.[employee_sex]
+	  ,d.[divisionCode]
+	  ,e.[sectionCode] as [sectionName]
+	  ,e.[section_number] as [sectionCode]
+  from TableB b right join  [userMaster].[dbo].[employee_lists] e
   on e.employee_number = b.employee_number COLLATE Thai_CI_AS
   join [userMaster].[dbo].[divison_masters] d 
   on e.[divisionCode] = d.[divisionCode]
@@ -181,15 +189,14 @@ where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} and e.[div
 
             const resultATK = await activity_master.sequelize.query(`SELECT distinct a.[employee_number]
 	  ,e.[employee_name]
-	  ,e.[employee_type]
-	  ,d.[divisionName]
-	  ,e.[sectionCode]
-	  ,e.[processCode]
-	  ,p.[PlantName]
+	  ,e.[employee_sex]
+	  ,d.[divisionCode]
+	  ,e.[sectionCode] as [sectionName]
+	  ,e.[section_number] as [sectionCode]
   FROM [CovidCC].[dbo].[activity_transactions] a
   left join [CovidCC].[dbo].[long_holiday_dates] l
   on  cast(DATEADD(HOUR,7,a.[activity_date]) as date) = cast(l.[long_holiday_date] as date)
-  right join  [userMaster].[dbo].[all_employee_lists] e
+  right join  [userMaster].[dbo].[employee_lists] e
   on e.employee_number = a.employee_number COLLATE Thai_CI_AS
   join [userMaster].[dbo].[divison_masters] d 
   on e.[divisionCode] = d.[divisionCode]
@@ -231,7 +238,7 @@ where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} and e.[div
                 //   "tarin.n@minebea.co.th",
                 // ],
                 // cc: "hight_007@hotmail.com,tarin.n@minebea.co.th",
-                subject: `⚠ Long holiday ATK result ${divisionName.divisionName}`, //subject
+                subject: `⚠ Long holiday alarm missing/risk activity ${divisionName.divisionName}`, //subject
                 html: `
                 <h3>Long holiday alarm missing/risk activity (auto alert email)</h3>
                 <p>Division : ${divisionName.divisionName}</p>
@@ -248,7 +255,7 @@ where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} and e.[div
                     },
                     {
                         filename:
-                            "need ATK Long holiday " +
+                            "Risk Activity Long holiday " +
                             moment(alert_date).format('YYYY-MM-DD') + '_' + divisionCode +
                             ".xlsx",
                         content: fs.createReadStream(excelFilePathATK),
