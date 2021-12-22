@@ -131,9 +131,9 @@ where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} ${division
     }
 })
 
-router.get("/alert_long_holiday/:alert_date", async (req, res) => {
+router.post("/alert_long_holiday/", async (req, res) => {
     try {
-        const { alert_date } = req.params;
+        const { alert_date } = req.body;
         const waitFor = (ms) => new Promise((r) => setTimeout(r, ms));
         const long_holiday_date_count = await long_holiday_date.findAll({ where: { alert_date } })
 
