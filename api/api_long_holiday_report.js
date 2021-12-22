@@ -42,7 +42,7 @@ SELECT [transaction_id]
       ,[provinces]
       ,a.[place]
       ,[activity]
-      ,[risk]
+      ,iif([risk] = 1 , 'risk' , 'not risk') as [risk]
 	  ,cast(l.[alert_date] as date) as [alert_date]
       ,a.[createdAt]
       ,a.[updatedAt]
@@ -55,7 +55,7 @@ SELECT [transaction_id]
   join [userMaster].[dbo].[plant_masters] p 
   on d.[PlantCode] = p.[PlantCode]
   where cast(l.[alert_date] as date) = '${alert_date}' ${divisionCondition} ${plantCondition}`,
-            { 
+            {
                 type: QueryTypes.SELECT,
             })
         res.json({
@@ -136,27 +136,28 @@ router.get("/alert_long_holiday/:alert_date", async (req, res) => {
         const { alert_date } = req.params;
         const waitFor = (ms) => new Promise((r) => setTimeout(r, ms));
         const long_holiday_date_count = await long_holiday_date.findAll({ where: { alert_date } })
-        console.log(long_holiday_date_count.length);
 
         const alarmDivision = await alert_mail.findAll({
             attributes: [
                 [Sequelize.fn('DISTINCT', Sequelize.col('divisionCode')), 'divisionCode'],
             ]
         })
+
         const testDivision = ['424Z', '424K', '43DM']
         // alarmDivision.length
-        for (let index = 0; index < testDivision.length; index++) {
-            // const divisionCode = alarmDivision[index].divisionCode;
-            const divisionCode = testDivision[index];
+        if (long_holiday_date_count.length > 0) {
+            for (let index = 0; index < testDivision.length; index++) {
+                // const divisionCode = alarmDivision[index].divisionCode;
+                const divisionCode = testDivision[index];
 
-            //get email
-            var toEmail = await getDivsionMailAlert(divisionCode)
+                //get email
+                var toEmail = await getDivsionMailAlert(divisionCode)
 
-            //get division name
-            const divisionName = await division_db.findOne({ where: { divisionCode } })
+                //get division name
+                const divisionName = await division_db.findOne({ where: { divisionCode } })
 
-            //get data by div
-            const resultMissing = await activity_master.sequelize.query(`with tableA as (
+                //get data by div
+                const resultMissing = await activity_master.sequelize.query(`with tableA as (
 SELECT a.[employee_number]
 	  ,cast(DATEADD(HOUR,7,a.[activity_date]) as date) as [activity_date]
   FROM [CovidCC].[dbo].[activity_transactions] a
@@ -183,11 +184,11 @@ SELECT a.[employee_number]
   join [userMaster].[dbo].[plant_masters] p 
   on d.[PlantCode] = p.[PlantCode]
 where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} and e.[divisionCode] = '${divisionCode}'`,
-                {
-                    type: QueryTypes.SELECT,
-                })
+                    {
+                        type: QueryTypes.SELECT,
+                    })
 
-            const resultATK = await activity_master.sequelize.query(`SELECT distinct a.[employee_number]
+                const resultATK = await activity_master.sequelize.query(`SELECT distinct a.[employee_number]
 	  ,e.[employee_name]
 	  ,e.[employee_sex]
 	  ,d.[divisionCode]
@@ -203,107 +204,110 @@ where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} and e.[div
   join [userMaster].[dbo].[plant_masters] p 
   on d.[PlantCode] = p.[PlantCode]
   where [risk] = 1 and l.alert_date = '${alert_date}' and e.[divisionCode] = '${divisionCode}'`,
-                {
-                    type: QueryTypes.SELECT,
-                })
+                    {
+                        type: QueryTypes.SELECT,
+                    })
 
-            //excel
-            const excelFilePathMissing = `files/Doc/LongHolidayMissing_${divisionCode}.xlsx`;
-            const excelFilePathATK = `files/Doc/LongHolidayATK_${divisionCode}.xlsx`;
+                //excel
+                const excelFilePathMissing = `files/Doc/LongHolidayMissing_${divisionCode}.xlsx`;
+                const excelFilePathATK = `files/Doc/LongHolidayATK_${divisionCode}.xlsx`;
 
-            let xlsMissing = await json2xls(resultMissing)
-            let xlsATK = await json2xls(resultATK)
+                let xlsMissing = await json2xls(resultMissing)
+                let xlsATK = await json2xls(resultATK)
 
-            await fs.writeFileSync(excelFilePathMissing, xlsMissing, "binary");
-            await fs.writeFileSync(excelFilePathATK, xlsATK, "binary");
+                await fs.writeFileSync(excelFilePathMissing, xlsMissing, "binary");
+                await fs.writeFileSync(excelFilePathATK, xlsATK, "binary");
 
-            //email
-            var smtp = {
-                host: "email-smtp.us-east-1.amazonaws.com", //set to your host name or ip
-                port: 465, //25, 465, 587 depend on your
-                // secure: true, // use SSL
-                auth: {
-                    user: "AKIA5CPB5AWUSL2F2LPT", //user account
-                    pass: "BDBxQl6mPXBgYwlMvYDHKdmKSXpTCAG4oGfrpetO15ib", //user password
-                },
-            };
+                //email
+                var smtp = {
+                    host: "email-smtp.us-east-1.amazonaws.com", //set to your host name or ip
+                    port: 465, //25, 465, 587 depend on your
+                    // secure: true, // use SSL
+                    auth: {
+                        user: "AKIA5CPB5AWUSL2F2LPT", //user account
+                        pass: "BDBxQl6mPXBgYwlMvYDHKdmKSXpTCAG4oGfrpetO15ib", //user password
+                    },
+                };
 
-            //send email
-            var smtpTransport = await mailer.createTransport(smtp);
-            var mail = {
-                from: "Minebeacovid19_th 📧<micnmb@gmail.com>", //from email (option)
-                to: ['hight_007@hotmail.com', 'pensri.k@minebea.co.th'], //to email (require) toEmail[0][0].email
-                // bcc: [
-                //   "hight_007@hotmail.com",
-                //   "tarin.n@minebea.co.th",
-                // ],
-                // cc: "hight_007@hotmail.com,tarin.n@minebea.co.th",
-                subject: `⚠ Long holiday alarm missing/risk activity ${divisionName.divisionName}`, //subject
-                html: `
+                //send email
+                var smtpTransport = await mailer.createTransport(smtp);
+                var mail = {
+                    from: "Minebeacovid19_th 📧<micnmb@gmail.com>", //from email (option)
+                    to: ['hight_007@hotmail.com', 'pensri.k@minebea.co.th'], //to email (require) toEmail[0][0].email
+                    // bcc: [
+                    //   "hight_007@hotmail.com",
+                    //   "tarin.n@minebea.co.th",
+                    // ],
+                    // cc: "hight_007@hotmail.com,tarin.n@minebea.co.th",
+                    subject: `⚠ Long holiday alarm missing/risk activity ${divisionName.divisionName}`, //subject
+                    html: `
                 <h3>Long holiday alarm missing/risk activity (auto alert email)</h3>
                 <p>Division : ${divisionName.divisionName}</p>
                 <p>man missing : ${resultMissing.length}</p>
                 <p>man risk : ${resultATK.length}</p>
                 <p>⚠This is auto alarm email , please do not reply</p>`, //email body
-                attachments: [
-                    {
-                        filename:
-                            "Missing Long holiday " +
-                            moment(alert_date).format('YYYY-MM-DD') + '_' + divisionCode +
-                            ".xlsx",
-                        content: fs.createReadStream(excelFilePathMissing),
-                    },
-                    {
-                        filename:
-                            "Risk Activity Long holiday " +
-                            moment(alert_date).format('YYYY-MM-DD') + '_' + divisionCode +
-                            ".xlsx",
-                        content: fs.createReadStream(excelFilePathATK),
-                    },
-                ],
-            };
+                    attachments: [
+                        {
+                            filename:
+                                "Missing Long holiday " +
+                                moment(alert_date).format('YYYY-MM-DD') + '_' + divisionCode +
+                                ".xlsx",
+                            content: fs.createReadStream(excelFilePathMissing),
+                        },
+                        {
+                            filename:
+                                "Risk Activity Long holiday " +
+                                moment(alert_date).format('YYYY-MM-DD') + '_' + divisionCode +
+                                ".xlsx",
+                            content: fs.createReadStream(excelFilePathATK),
+                        },
+                    ],
+                };
 
-            await smtpTransport.sendMail(mail, function (error, _response) {
-                smtpTransport.close();
-                if (error) {
-                    console.log("error send email : " + error);
-                    sendErrorEmailToAdmin(
-                        "error send email : " + error,
-                        item.divisionCode + " " + item.divisionName
-                    );
-                } else {
-                    //send success
-                    console.log(
-                        "send email division : " +
-                        item.divisionCode +
-                        " shift : " +
-                        shift +
-                        " success"
-                    );
-                    try {
-                        success_alarm.create({
-                            divisionCode: item.divisionCode,
-                            shift: shift,
-                            AlarmDate: dateAlarm,
-                            missingCount: dataMissing[0].length,
-                            overCount: dataOverTemp[0].length,
-                        });
-                    } catch (error) {
+                await smtpTransport.sendMail(mail, function (error, _response) {
+                    smtpTransport.close();
+                    if (error) {
+                        console.log("error send email : " + error);
                         sendErrorEmailToAdmin(
-                            "record result error : " + error,
+                            "error send email : " + error,
                             item.divisionCode + " " + item.divisionName
                         );
+                    } else {
+                        //send success
+                        console.log(
+                            "send email division : " +
+                            item.divisionCode +
+                            " shift : " +
+                            shift +
+                            " success"
+                        );
+                        try {
+                            success_alarm.create({
+                                divisionCode: item.divisionCode,
+                                shift: shift,
+                                AlarmDate: dateAlarm,
+                                missingCount: dataMissing[0].length,
+                                overCount: dataOverTemp[0].length,
+                            });
+                        } catch (error) {
+                            sendErrorEmailToAdmin(
+                                "record result error : " + error,
+                                item.divisionCode + " " + item.divisionName
+                            );
+                        }
                     }
-                }
-            });
+                });
 
-            await waitFor(300);
+                await waitFor(300);
 
-            await fs.unlinkSync(excelFilePathMissing)
-            await fs.unlinkSync(excelFilePathATK)
+                await fs.unlinkSync(excelFilePathMissing)
+                await fs.unlinkSync(excelFilePathATK)
+            }
+
+            res.json('OK')
+        } else {
+            res.json('OK')
         }
-
-        res.json({ alarmDivision })
     } catch (error) {
         console.log(error);
         res.json({
