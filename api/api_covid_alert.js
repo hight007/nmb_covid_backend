@@ -49,8 +49,8 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
     const waitFor = (ms) => new Promise((r) => setTimeout(r, ms));
     const { shift } = req.params;
     const dateAlarm = formatDate(new Date());
-    // let AlarmDivision = await getAlarmDivision(dateAlarm, shift);
-    let AlarmDivision = [[{ divisionCode:'46R6'}]]
+    let AlarmDivision = await getAlarmDivision(dateAlarm, shift);
+    // let AlarmDivision = [[{ divisionCode:'46R6'}]]
     for (let index = 0; index < AlarmDivision[0].length; index++) {
       let item = AlarmDivision[0][index];
       //Missing alert
@@ -67,21 +67,20 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
           shift
         );
 
-        console.log('missing ok');
-
+        
         let dataOverTemp = await getOverTempByDiv(
           item.divisionCode,
           dateAlarm,
           shift
         );
-        console.log(dataMissing);
+
+        
+
         let xlsMissing = await json2xls(dataMissing[0]);
         let xlsOver = await json2xls(dataOverTemp[0]);
         // let xlsMissing = await ;
         await fs.writeFileSync(excelFilePathMissing, xlsMissing, "binary");
         await fs.writeFileSync(excelFilePathOver, xlsOver, "binary");
-
-        await waitFor(300);
 
         // console.log(toEmail);
         var smtp = {
@@ -99,10 +98,10 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
         var mail = {
           from: "Minebeacovid19_th 📧<micnmb@gmail.com>", //from email (option)
           to: toEmail, //to email (require) toEmail[0][0].email
-          to: '',
+          // to: '',
           bcc: [
             "hight_007@hotmail.com",
-            "tarin.n@minebea.co.th",
+            // "tarin.n@minebea.co.th",
           ],
           // cc: "hight_007@hotmail.com,tarin.n@minebea.co.th",
           subject: `⚠ Covid 19 alarm missing/over temperature (shift : ${shift} ,Divsion : ${item.divisionName})`, //subject
@@ -135,7 +134,7 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
           ],
         };
 
-        await smtpTransport.sendMail(mail, function (error, _response) {
+        await smtpTransport.sendMail(mail, async function (error, _response) {
           smtpTransport.close();
           if (error) {
             console.log("error send email : " + error);
@@ -145,6 +144,11 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
             );
           } else {
             //send success
+
+
+            await fs.unlinkSync(excelFilePathMissing)
+            await fs.unlinkSync(excelFilePathOver)
+
             console.log(
               "send email division : " +
                 item.divisionCode +
@@ -169,24 +173,9 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
           }
         });
 
-        await fs.unlink(excelFilePathMissing, function (err) {
-          if (err) return console.log(err);
-          console.log(
-            "file missing deleted successfully , division : " +
-              item.divisionCode +
-              " , shift : " +
-              shift
-          );
-        });
-        await fs.unlink(excelFilePathOver, function (err) {
-          if (err) return console.log(err);
-          console.log(
-            "file over deleted successfully , division : " +
-              item.divisionCode +
-              " , shift : " +
-              shift
-          );
-        });
+
+        await waitFor(300);
+
       } catch (error) {
         console.log("error : " + error);
         sendErrorEmailToAdmin(
