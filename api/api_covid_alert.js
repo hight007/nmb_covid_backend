@@ -99,10 +99,10 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
           from: "Minebeacovid19_th 📧<micnmb@gmail.com>", //from email (option)
           to: toEmail, //to email (require) toEmail[0][0].email
           // to: '',
-          bcc: [
-            "hight_007@hotmail.com",
-            // "tarin.n@minebea.co.th",
-          ],
+          // bcc: [
+          //   "hight_007@hotmail.com",
+          //   // "tarin.n@minebea.co.th",
+          // ],
           // cc: "hight_007@hotmail.com,tarin.n@minebea.co.th",
           subject: `⚠ Covid 19 alarm missing/over temperature (shift : ${shift} ,Divsion : ${item.divisionName})`, //subject
           html: `<h3>⚠ Covid 19 alarm missing/over temperature (auto alert email)</h3>
