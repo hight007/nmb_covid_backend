@@ -143,7 +143,7 @@ router.post("/alert_long_holiday/", async (req, res) => {
             ]
         })
 
-        const testDivision = ['424Z', '424K', '43DM']
+        const testDivision = ['4122', '4108', '43DM' , '46R6']
         // alarmDivision.length
         if (long_holiday_date_count.length > 0) {
             for (let index = 0; index < testDivision.length; index++) {

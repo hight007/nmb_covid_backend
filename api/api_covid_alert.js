@@ -82,6 +82,7 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
 
         await waitFor(300);
 
+        // console.log(toEmail);
         var smtp = {
           host: "email-smtp.us-east-1.amazonaws.com", //set to your host name or ip
           port: 465, //25, 465, 587 depend on your
@@ -92,15 +93,16 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
           },
         };
 
-        //send email
+        // send email
         var smtpTransport = await mailer.createTransport(smtp);
         var mail = {
           from: "Minebeacovid19_th 📧<micnmb@gmail.com>", //from email (option)
-          to: toEmail[0][0].email, //to email (require) toEmail[0][0].email
-          // bcc: [
-          //   "hight_007@hotmail.com",
-          //   "tarin.n@minebea.co.th",
-          // ],
+          to: toEmail, //to email (require) toEmail[0][0].email
+          to: '',
+          bcc: [
+            "hight_007@hotmail.com",
+            "tarin.n@minebea.co.th",
+          ],
           // cc: "hight_007@hotmail.com,tarin.n@minebea.co.th",
           subject: `⚠ Covid 19 alarm missing/over temperature (shift : ${shift} ,Divsion : ${item.divisionName})`, //subject
           html: `<h3>⚠ Covid 19 alarm missing/over temperature (auto alert email)</h3>
@@ -166,7 +168,7 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
           }
         });
 
-        // delete file
+        delete file
         await fs.unlink(excelFilePathMissing, function (err) {
           if (err) return console.log(err);
           console.log(
