@@ -49,7 +49,8 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
     const waitFor = (ms) => new Promise((r) => setTimeout(r, ms));
     const { shift } = req.params;
     const dateAlarm = formatDate(new Date());
-    let AlarmDivision = await getAlarmDivision(dateAlarm, shift);
+    // let AlarmDivision = await getAlarmDivision(dateAlarm, shift);
+    let AlarmDivision = [[{ divisionCode:'46R6'}]]
     for (let index = 0; index < AlarmDivision[0].length; index++) {
       let item = AlarmDivision[0][index];
       //Missing alert
@@ -73,7 +74,7 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
           dateAlarm,
           shift
         );
-
+        console.log(dataMissing);
         let xlsMissing = await json2xls(dataMissing[0]);
         let xlsOver = await json2xls(dataOverTemp[0]);
         // let xlsMissing = await ;
@@ -99,10 +100,10 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
           from: "Minebeacovid19_th 📧<micnmb@gmail.com>", //from email (option)
           to: toEmail, //to email (require) toEmail[0][0].email
           to: '',
-          // bcc: [
-          //   "hight_007@hotmail.com",
-          //   "tarin.n@minebea.co.th",
-          // ],
+          bcc: [
+            "hight_007@hotmail.com",
+            "tarin.n@minebea.co.th",
+          ],
           // cc: "hight_007@hotmail.com,tarin.n@minebea.co.th",
           subject: `⚠ Covid 19 alarm missing/over temperature (shift : ${shift} ,Divsion : ${item.divisionName})`, //subject
           html: `<h3>⚠ Covid 19 alarm missing/over temperature (auto alert email)</h3>
@@ -168,7 +169,6 @@ router.get("/alarmCovid_excel/:shift", async (req, res) => {
           }
         });
 
-        delete file
         await fs.unlink(excelFilePathMissing, function (err) {
           if (err) return console.log(err);
           console.log(
