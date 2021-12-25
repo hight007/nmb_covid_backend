@@ -143,7 +143,7 @@ router.post("/alert_long_holiday/", async (req, res) => {
             ]
         })
 
-        const testDivision = ['4122', '4108', '43DM' , '46R6']
+        const testDivision = ['4122', '4108', '43DM', '46R6']
         // alarmDivision.length
         if (long_holiday_date_count.length > 0) {
             for (let index = 0; index < testDivision.length; index++) {
@@ -233,11 +233,12 @@ where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} and e.[div
                 var smtpTransport = await mailer.createTransport(smtp);
                 var mail = {
                     from: "Minebeacovid19_th 📧<micnmb@gmail.com>", //from email (option)
-                    to: ['hight_007@hotmail.com', 'pensri.k@minebea.co.th'], //to email (require) toEmail[0][0].email
-                    // bcc: [
-                    //   "hight_007@hotmail.com",
-                    //   "tarin.n@minebea.co.th",
-                    // ],
+                    // to: ['hight_007@hotmail.com', 'pensri.k@minebea.co.th'], //to email (require) toEmail[0][0].email
+                    to: toEmail,
+                    bcc: [
+                        "hight_007@hotmail.com",
+                        // 'pensri.k@minebea.co.th',
+                    ],
                     // cc: "hight_007@hotmail.com,tarin.n@minebea.co.th",
                     subject: `⚠ Long holiday alarm missing/risk activity ${divisionName.divisionName}`, //subject
                     html: `
