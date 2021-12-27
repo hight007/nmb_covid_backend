@@ -143,12 +143,12 @@ router.post("/alert_long_holiday/", async (req, res) => {
             ]
         })
 
-        const testDivision = ['4122', '4108', '43DM', '46R6']
+        // const testDivision = ['4122', '4108', '43DM', '46R6']
         // alarmDivision.length
         if (long_holiday_date_count.length > 0) {
-            for (let index = 0; index < testDivision.length; index++) {
-                // const divisionCode = alarmDivision[index].divisionCode;
-                const divisionCode = testDivision[index];
+            for (let index = 0; index < alarmDivision.length; index++) {
+                const divisionCode = alarmDivision[index].divisionCode;
+                // const divisionCode = testDivision[index];
 
                 //get email
                 var toEmail = await getDivsionMailAlert(divisionCode)
