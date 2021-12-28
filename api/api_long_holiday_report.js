@@ -175,8 +175,8 @@ SELECT a.[employee_number]
 	  ,e.[employee_name]
 	  ,e.[employee_sex]
 	  ,d.[divisionCode]
-	  ,e.[sectionCode] as [sectionName]
 	  ,e.[section_number] as [sectionCode]
+      ,e.[processCode] as [processCode]
   from TableB b right join  [userMaster].[dbo].[employee_lists] e
   on e.employee_number = b.employee_number COLLATE Thai_CI_AS
   join [userMaster].[dbo].[divison_masters] d 
@@ -192,8 +192,8 @@ where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} and e.[div
 	  ,e.[employee_name]
 	  ,e.[employee_sex]
 	  ,d.[divisionCode]
-	  ,e.[sectionCode] as [sectionName]
 	  ,e.[section_number] as [sectionCode]
+      ,e.[processCode] as [processCode]
   FROM [CovidCC].[dbo].[activity_transactions] a
   left join [CovidCC].[dbo].[long_holiday_dates] l
   on  cast(DATEADD(HOUR,7,a.[activity_date]) as date) = cast(l.[long_holiday_date] as date)
