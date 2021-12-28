@@ -175,6 +175,7 @@ SELECT a.[employee_number]
 	  ,e.[employee_name]
 	  ,e.[employee_sex]
 	  ,d.[divisionCode]
+      ,e.[sectionCode] as [sectionName]
 	  ,e.[section_number] as [sectionCode]
       ,e.[processCode] as [processCode]
   from TableB b right join  [userMaster].[dbo].[employee_lists] e
@@ -192,6 +193,7 @@ where isnull(b.activity_date , 0) < ${long_holiday_date_count.length} and e.[div
 	  ,e.[employee_name]
 	  ,e.[employee_sex]
 	  ,d.[divisionCode]
+	  ,e.[sectionCode] as [sectionName]
 	  ,e.[section_number] as [sectionCode]
       ,e.[processCode] as [processCode]
   FROM [CovidCC].[dbo].[activity_transactions] a
